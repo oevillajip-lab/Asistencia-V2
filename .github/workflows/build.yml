@@ -1,0 +1,58 @@
+name: Build Asistencia APK
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 1. Liberar espacio
+      - name: Free Disk Space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+
+      # 2. Configurar Java
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3. INSTALAR LIBRERÍAS DE CÁMARA (CRUCIAL PARA ZBAR)
+      - name: Install System Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential git python3-pip python3-dev \
+            libffi-dev libssl-dev libltdl-dev libtool \
+            automake autoconf pkg-config zip unzip \
+            zlib1g-dev libncurses5-dev libncursesw5-dev \
+            libtinfo5 cmake libzbar-dev
+
+      # 4. Instalar Buildozer
+      - name: Install Buildozer
+        run: |
+          pip3 install --upgrade pip
+          pip3 install --user --upgrade Cython==0.29.33 virtualenv
+          pip3 install --user --upgrade buildozer
+
+      # 5. Compilar
+      - name: Build APK
+        run: |
+          export PATH=$PATH:~/.local/bin
+          yes | buildozer android debug
+
+      # 6. Subir APK
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Asistencia-QR-APK
+          path: bin/*.apk
