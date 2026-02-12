@@ -1,31 +1,31 @@
 [app]
-title = Asistencia QR
-package.name = asistencia
+title = Asistencia V3
+package.name = asistenciav3
 package.domain = com.comagro
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
-version = 1.0
+version = 3.0
 
-# REQUISITOS (Zbar y Kivy)
-requirements = python3,kivy==2.3.0,android,requests,kivy_garden.zbarcam,zbar,pillow,openssl
+# REQUISITOS (Sin zbarcam, con camera4kivy)
+requirements = python3,kivy==2.3.0,android,requests,camera4kivy,pillow,openssl
 
 # PERMISOS
-android.permissions = INTERNET,CAMERA,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORAGE
+android.permissions = INTERNET,CAMERA,WRITE_EXTERNAL_STORAGE
 
 orientation = portrait
 fullscreen = 0
 
-# --- CONFIGURACIÓN ANDROID (CRUCIAL) ---
+# ANDROID CONFIG
 android.api = 33
 android.minapi = 24
 android.ndk = 25b
 android.archs = arm64-v8a
 android.enable_androidx = True
-
-# ACEPTAR LICENCIAS AUTOMÁTICAMENTE (Esto evita el error oculto)
 android.accept_sdk_license = True
 
-# (He quitado p4a.branch = master para usar la versión ESTABLE)
+# COMPILADOR ESTABLE
+p4a.branch = master
+p4a.bootstrap = sdl2
 
 [buildozer]
 log_level = 2
