@@ -6,7 +6,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 1.0
 
-# REQUISITOS (Aquí pedimos la cámara y el lector QR)
+# REQUISITOS (Cámara y QR)
 requirements = python3,kivy==2.3.0,android,requests,kivy_garden.zbarcam,zbar,pillow,openssl
 
 # PERMISOS
@@ -21,6 +21,10 @@ android.minapi = 24
 android.ndk = 25b
 android.archs = arm64-v8a
 android.enable_androidx = True
+
+# --- ¡ESTA ES LA LÍNEA QUE FALTABA! ---
+android.accept_sdk_license = True
+# --------------------------------------
 
 # CONFIGURACION COMPILADOR
 p4a.branch = master
