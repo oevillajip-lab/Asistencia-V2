@@ -3,132 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asistencia QR</title>
+    <title>Asistencia QR Pro</title>
+    
+    <link rel="icon" type="image/png" href="logo.png">
+    <link rel="apple-touch-icon" href="logo.png">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        /* --- ESTILOS GENERALES --- */
-        body { 
-            background-color: #121212; 
-            color: white; 
-            font-family: sans-serif; 
-            text-align: center; 
-            margin: 0; padding: 0;
-            user-select: none; /* Evita seleccionar texto al tocar mucho */
-        }
+        body { background-color: #121212; color: white; font-family: sans-serif; text-align: center; margin: 0; padding: 0; user-select: none; }
         .container { padding: 20px; }
         .hidden { display: none !important; }
-
-        /* LOGO */
         #logo-img { width: 100px; height: 100px; margin: 20px auto; object-fit: contain; display: block; }
-
-        /* BOTONES PRINCIPALES */
-        .btn-main {
-            width: 100%; padding: 20px; margin: 10px 0; 
-            font-size: 18px; font-weight: bold; border-radius: 15px; 
-            border: none; color: white; cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
+        .btn-main { width: 100%; padding: 20px; margin: 10px 0; font-size: 18px; font-weight: bold; border-radius: 15px; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-blue { background: linear-gradient(135deg, #007bff, #0056b3); }
         .btn-green { background: linear-gradient(135deg, #28a745, #1e7e34); }
-        .btn-red { background: linear-gradient(135deg, #dc3545, #a71d2a); }
-
-        /* BOTÓN ATRÁS (FLECHA) */
-        .header-nav {
-            display: flex; align-items: center; 
-            padding: 15px; background-color: #1f1f1f;
-            border-bottom: 1px solid #333; margin-bottom: 20px;
-        }
-        .btn-back {
-            background: none; border: none; color: white; font-size: 24px; cursor: pointer;
-            padding: 0 15px 0 0;
-        }
+        .header-nav { display: flex; align-items: center; padding: 15px; background-color: #1f1f1f; border-bottom: 1px solid #333; margin-bottom: 20px; }
+        .btn-back { background: none; border: none; color: white; font-size: 24px; cursor: pointer; padding: 0 15px 0 0; }
         .header-title { font-size: 18px; font-weight: bold; margin: 0; }
-
-        /* INPUTS */
-        input {
-            width: 90%; padding: 15px; margin: 10px 0; 
-            border-radius: 10px; border: 1px solid #444;
-            background-color: #222; color: white; font-size: 16px;
-            display: block; margin-left: auto; margin-right: auto;
-        }
+        input { width: 90%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 1px solid #444; background-color: #222; color: white; font-size: 16px; display: block; margin-left: auto; margin-right: auto; }
         input:disabled { background-color: #333; color: #aaa; border-color: #555; font-weight: bold; text-align: center; }
-
-        /* OVERLAY DE CARGA (Pantalla de Procesando) */
-        #loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.9); z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .spinner {
-            border: 6px solid #333; border-top: 6px solid #007bff; border-radius: 50%;
-            width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px;
-        }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.95); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; }
+        .spinner { border: 6px solid #333; border-top: 6px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        #loading-text { font-size: 20px; font-weight: bold; }
-
-        /* CAMARA */
+        #loading-text { font-size: 22px; font-weight: bold; line-height: 1.4; }
         #reader { width: 100%; border-radius: 10px; overflow: hidden; border: 2px solid #555; }
     </style>
 </head>
 <body>
 
+    <audio id="beep-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
+
     <div id="loading-overlay" class="hidden">
-        <div class="spinner"></div>
+        <div id="loading-spinner" class="spinner"></div>
         <div id="loading-text">Procesando...</div>
     </div>
 
     <div id="menu-screen" class="container">
         <img src="logo.png" id="logo-img" alt="Logo">
         <h2 style="margin-bottom: 30px;">CONTROL DE ACCESO</h2>
-        
-        <button class="btn-main btn-blue" onclick="startScanner()">
-            <span>📸</span> ESCANEAR QR
-        </button>
-        
-        <button class="btn-main btn-green" onclick="prepararFormulario()">
-            <span>➕</span> NUEVO ASISTENTE
-        </button>
+        <button class="btn-main btn-blue" onclick="startScanner()"><span>📸</span> ESCANEAR QR</button>
+        <button class="btn-main btn-green" onclick="prepararFormulario()"><span>➕</span> NUEVO ASISTENTE</button>
     </div>
 
     <div id="scanner-screen" class="hidden">
-        <div class="header-nav">
-            <button class="btn-back" onclick="stopScanner()">⬅️</button>
-            <p class="header-title">Escanear QR</p>
-        </div>
-        <div class="container">
-            <div id="reader"></div>
-            <p style="color:#aaa; font-size:14px; margin-top:20px;">Apunta al código QR</p>
-        </div>
+        <div class="header-nav"><button class="btn-back" onclick="stopScanner()">⬅️</button><p class="header-title">Escanear QR</p></div>
+        <div class="container"><div id="reader"></div></div>
     </div>
 
     <div id="form-screen" class="hidden">
-        <div class="header-nav">
-            <button class="btn-back" onclick="showMenu()">⬅️</button>
-            <p class="header-title">Nuevo Registro</p>
-        </div>
-
+        <div class="header-nav"><button class="btn-back" onclick="showMenu()">⬅️</button><p class="header-title">Nuevo Registro</p></div>
         <div class="container">
             <label style="font-size: 14px; color: #aaa;">ID Asignado:</label>
-            <input type="text" id="id_qr" placeholder="Cargando..." disabled>
-
+            <input type="text" id="id_qr" placeholder="..." disabled>
             <input type="text" id="nombre" placeholder="Nombre Completo">
             <input type="number" id="celular" placeholder="Celular (Opcional)">
             <input type="text" id="empresa" placeholder="Empresa (Opcional)">
-            
-            <button class="btn-main btn-green" onclick="sendForm()" style="margin-top: 30px;">
-                GUARDAR DATOS
-            </button>
+            <button class="btn-main btn-green" onclick="sendForm()" style="margin-top: 30px;">GUARDAR DATOS</button>
         </div>
     </div>
 
     <script>
-        // --- TU SCRIPT URL ---
-        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxWRW3S6UfTJzHK021ndiLc0biAuvR5tQ3Mo1epv4llsdyr1esDReBpQ_7m0wFlt8eg/exec";
-        
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGkbMAroZQoRCT2farKF0TkCGKZwmeobjD2RzZav7dsyoEiHRhbRcThqphnq242Bp7/exec";
         let html5QrcodeScanner;
 
-        // --- NAVEGACIÓN ---
         function showMenu() {
             document.getElementById('menu-screen').classList.remove('hidden');
             document.getElementById('scanner-screen').classList.add('hidden');
@@ -137,109 +76,72 @@
         }
 
         function showLoading(texto) {
+            document.getElementById('loading-spinner').classList.remove('hidden');
             document.getElementById('loading-text').innerText = texto;
             document.getElementById('loading-overlay').classList.remove('hidden');
         }
 
-        function hideLoading() {
-            document.getElementById('loading-overlay').classList.add('hidden');
-        }
+        function hideLoading() { document.getElementById('loading-overlay').classList.add('hidden'); }
 
-        // --- FORMULARIO NUEVO ---
         function prepararFormulario() {
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('form-screen').classList.remove('hidden');
-            
-            // Ponemos "Cargando..." y bloqueamos pantalla un momento
-            const inputId = document.getElementById('id_qr');
-            inputId.value = "...";
+            document.getElementById('id_qr').value = "...";
             showLoading("Obteniendo ID...");
-
-            fetch(`${SCRIPT_URL}?action=ultimoId`)
-            .then(res => res.text())
-            .then(data => {
-                inputId.value = data;
-                hideLoading(); // Ya tenemos ID, mostramos formulario
-            })
-            .catch(err => {
-                inputId.value = "Error";
+            fetch(`${SCRIPT_URL}?action=ultimoId`).then(res => res.text()).then(data => {
+                document.getElementById('id_qr').value = data;
                 hideLoading();
-                alert("Sin conexión para obtener ID");
-            });
+            }).catch(() => { hideLoading(); alert("Error de conexión"); });
         }
 
-        // --- ESCÁNER ---
         function startScanner() {
             document.getElementById('menu-screen').classList.add('hidden');
             document.getElementById('scanner-screen').classList.remove('hidden');
-
             html5QrcodeScanner = new Html5Qrcode("reader");
             html5QrcodeScanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess)
-            .catch(err => {
-                alert("Error cámara: Permisos denegados");
-                showMenu();
-            });
+            .catch(() => { alert("Error cámara"); showMenu(); });
         }
 
         function stopScanner() {
-            if (html5QrcodeScanner) {
-                html5QrcodeScanner.stop().then(() => { html5QrcodeScanner.clear(); showMenu(); }).catch(() => showMenu());
-            } else {
-                showMenu();
-            }
+            if (html5QrcodeScanner) html5QrcodeScanner.stop().then(() => { html5QrcodeScanner.clear(); showMenu(); }).catch(() => showMenu());
+            else showMenu();
         }
 
         function onScanSuccess(decodedText) {
-            // DETENER CÁMARA
+            // REPRODUCIR SONIDO BIP
+            const audio = document.getElementById("beep-sound");
+            audio.play().catch(e => console.log("Audio bloqueado por navegador"));
+
             html5QrcodeScanner.stop().then(() => {
                 html5QrcodeScanner.clear();
-                // ENVIAR DATOS
                 sendData('scan', { id: decodedText });
             });
         }
 
-        // --- ENVÍO DE DATOS Y RETORNO AUTOMÁTICO ---
         function sendForm() {
-            const idVal = document.getElementById('id_qr').value;
-            const nombreVal = document.getElementById('nombre').value;
-            
-            if (idVal === "..." || idVal === "Error") { alert("Espera el ID"); return; }
-            if (!nombreVal) { alert("Falta el Nombre"); return; }
-
-            const data = {
-                nombre: nombreVal,
-                id: idVal,
-                celular: document.getElementById('celular').value,
-                empresa: document.getElementById('empresa').value
-            };
-            sendData('nuevo', data);
+            const nom = document.getElementById('nombre').value;
+            if (!nom) { alert("Falta el Nombre"); return; }
+            sendData('nuevo', { nombre: nom, id: document.getElementById('id_qr').value, celular: document.getElementById('celular').value, empresa: document.getElementById('empresa').value });
         }
 
         function sendData(action, params) {
-            // MOSTRAR PANTALLA DE PROCESANDO
-            showLoading(action === 'nuevo' ? "Guardando..." : "Registrando Asistencia...");
-
+            showLoading("Procesando...");
             let url = `${SCRIPT_URL}?action=${action}`;
             for (const key in params) { url += `&${key}=${encodeURIComponent(params[key])}`; }
 
-            fetch(url, { method: 'GET', mode: 'no-cors' })
-            .then(() => {
-                // ÉXITO VISUAL
-                document.getElementById('loading-text').innerText = "✅ ¡LISTO!";
-                
-                // ESPERAR 1.5 SEGUNDOS Y VOLVER AL MENÚ
+            fetch(url)
+            .then(res => res.text())
+            .then(mensaje => {
+                document.getElementById('loading-spinner').classList.add('hidden');
+                document.getElementById('loading-text').innerText = mensaje;
                 setTimeout(() => {
                     showMenu();
-                    // Limpiar campos
-                    document.getElementById('nombre').value = "";
-                    document.getElementById('celular').value = "";
-                    document.getElementById('empresa').value = "";
-                }, 1500);
+                    if(action === 'nuevo') {
+                        document.getElementById('nombre').value = ""; document.getElementById('celular').value = ""; document.getElementById('empresa').value = "";
+                    }
+                }, 3000);
             })
-            .catch(error => {
-                hideLoading();
-                alert("❌ Error de conexión");
-            });
+            .catch(() => { hideLoading(); alert("❌ Error conexión"); });
         }
     </script>
 </body>
