@@ -1,16 +1,20 @@
 [app]
-title = Asistencia V3
-package.name = asistenciav3
+title = Asistencia QR
+package.name = asistenciafinal
 package.domain = com.comagro
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
-version = 3.0
+version = 4.0
 
-# REQUISITOS (Agregamos 'gestures4kivy' que a veces es necesario para camera4kivy)
-requirements = python3,kivy==2.3.0,android,requests,camera4kivy,gestures4kivy,pillow,openssl
+# --- REQUISITOS (Vital para que no se cierre) ---
+requirements = python3,kivy==2.3.0,camera4kivy,gestures4kivy,pillow,requests,openssl
 
-# PERMISOS
-android.permissions = INTERNET,CAMERA,WRITE_EXTERNAL_STORAGE,RECORD_AUDIO
+# --- LOGO E ICONO (¡AQUÍ ESTÁ LA SOLUCIÓN DEL LOGO!) ---
+icon.filename = %(source.dir)s/logo.png
+presplash.filename = %(source.dir)s/logo.png
+
+# --- PERMISOS (Vital para cámara) ---
+android.permissions = INTERNET,CAMERA,RECORD_AUDIO,WRITE_EXTERNAL_STORAGE
 
 orientation = portrait
 fullscreen = 0
@@ -23,16 +27,11 @@ android.archs = arm64-v8a
 android.enable_androidx = True
 android.accept_sdk_license = True
 
-# --- ¡ESTA ES LA LÍNEA QUE FALTABA! (DRIVERS DE CÁMARA) ---
+# --- DRIVERS DE CÁMARA (Para evitar el crash) ---
 android.gradle_dependencies = androidx.camera:camera-camera2:1.1.0-beta01, androidx.camera:camera-lifecycle:1.1.0-beta01, androidx.camera:camera-view:1.1.0-beta01
 
-# --- OPTIMIZACIÓN DE IMÁGENES (Para que no falle Pillow) ---
-android.add_jars = foo.jar
 p4a.branch = master
 p4a.bootstrap = sdl2
-
-# WHITELIST (Para evitar errores de archivos faltantes)
-android.whitelist = lib-dynload/
 
 [buildozer]
 log_level = 2
