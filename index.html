@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia QR</title>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body { background-color: #121212; color: white; font-family: sans-serif; text-align: center; padding: 20px; margin: 0; }
+        .hidden { display: none; }
+        
+        /* TU LOGO */
+        #logo-img { width: 120px; height: 120px; margin-bottom: 20px; object-fit: contain; }
+        
+        /* BOTONES ESTILO APP */
+        button {
+            width: 100%; padding: 18px; margin: 10px 0; font-size: 18px; font-weight: bold;
+            border: none; border-radius: 12px; cursor: pointer; color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        .btn-scan { background-color: #007bff; }
+        .btn-new { background-color: #28a745; }
+        .btn-cancel { background-color: #dc3545; }
+        .btn-save { background-color: #28a745; margin-top: 20px; }
+
+        /* INPUTS */
+        input {
+            width: 90%; padding: 15px; margin: 10px 0; border-radius: 8px; border: 1px solid #333;
+            background-color: #222; color: white; font-size: 18px;
+        }
+
+        /* CAMARA */
+        #reader { width: 100%; margin-top: 20px; border-radius: 15px; overflow: hidden; border: 2px solid #555; }
+        
+        /* MENSAJES */
+        #status { margin-top: 20px; font-size: 18px; font-weight: bold; min-height: 25px; }
+        .success { color: #4caf50; }
+        .error { color: #f44336; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-screen">
+        <br>
+        <img src="logo.png" id="logo-img" alt="Logo">
+        <h2>CONTROL ACCESO</h2>
+        <button class="btn-scan" onclick="startScanner()">📸 ESCANEAR QR</button>
+        <button class="btn-new" onclick="showForm()">➕ NUEVO ASISTENTE</button>
+        <div id="status"></div>
+    </div>
+
+    <div id="scanner-screen" class="hidden">
+        <h3>Escanear QR</h3>
+        <div id="reader"></div>
+        <br>
+        <button class="btn-cancel" onclick="stopScanner()">CANCELAR</button>
+    </div>
+
+    <div id="form-screen" class="hidden">
+        <h3>Registro Manual</h3>
+        <input type="text" id="nombre" placeholder="Nombre Completo">
+        <input type="number" id="id_qr" placeholder="ID (Número QR)">
+        <input type="number" id="celular" placeholder="Celular">
+        <input type="text" id="empresa" placeholder="Empresa">
+        
+        <button class="btn-save" onclick="sendForm()">GUARDAR</button>
+        <button class="btn-cancel" onclick="showMenu()">VOLVER</button>
+    </div>
+
+    <script>
+        // TU URL DE GOOGLE SHEET
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXJc1hd8v4mw_LiSn6E6RzT4pTsnv40DhQBLTl_uDD17wLSv5BffObXFBsaPBMBR0Y/exec";
+        
+        let html5QrcodeScanner;
+
+        function showMenu() {
+            document.getElementById('menu-screen').classList.remove('hidden');
+            document.getElementById('scanner-screen').classList.add('hidden');
+            document.getElementById('form-screen').classList.add('hidden');
+            document.getElementById('status').innerText = "";
+        }
+
+        function showForm() {
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('form-screen').classList.remove('hidden');
+        }
+
+        // --- LÓGICA DE CÁMARA (WEB) ---
+        function startScanner() {
+            document.getElementById('menu-screen').classList.add('hidden');
+            document.getElementById('scanner-screen').classList.remove('hidden');
+
+            html5QrcodeScanner = new Html5Qrcode("reader");
+            // Configuración para usar la cámara trasera preferentemente
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            html5QrcodeScanner.start({ facingMode: "environment" }, config, onScanSuccess)
+            .catch(err => {
+                alert("Error al iniciar cámara: " + err);
+                stopScanner();
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.stop().then(() => {
+                    html5QrcodeScanner.clear();
+                    showMenu();
+                }).catch(err => showMenu());
+            } else {
+                showMenu();
+            }
+        }
+
+        function onScanSuccess(decodedText, decodedResult) {
+            // Detener cámara al leer
+            html5QrcodeScanner.stop().then(() => {
+                html5QrcodeScanner.clear();
+                showMenu();
+                // Enviar ID
+                sendData('scan', { id: decodedText });
+            });
+        }
+
+        // --- ENVÍO DE DATOS ---
+        function sendForm() {
+            const data = {
+                nombre: document.getElementById('nombre').value,
+                id: document.getElementById('id_qr').value,
+                celular: document.getElementById('celular').value,
+                empresa: document.getElementById('empresa').value
+            };
+            if(!data.nombre || !data.id) { alert("Falta Nombre o ID"); return; }
+            sendData('nuevo', data);
+        }
+
+        function sendData(action, params) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerText = "⏳ Enviando...";
+            statusDiv.className = "";
+
+            let url = `${SCRIPT_URL}?action=${action}`;
+            for (const key in params) {
+                url += `&${key}=${encodeURIComponent(params[key])}`;
+            }
+
+            // Usamos 'no-cors' para que el navegador no bloquee la petición a Google
+            fetch(url, { method: 'GET', mode: 'no-cors' })
+            .then(response => {
+                statusDiv.innerText = "✅ ¡Enviado Correctamente!";
+                statusDiv.className = "success";
+                if(action === 'nuevo') showMenu();
+                
+                // Limpiar campos
+                document.getElementById('nombre').value = "";
+                document.getElementById('id_qr').value = "";
+                document.getElementById('celular').value = "";
+                document.getElementById('empresa').value = "";
+            })
+            .catch(error => {
+                statusDiv.innerText = "❌ Error de Red";
+                statusDiv.className = "error";
+            });
+        }
+    </script>
+</body>
+</html>
