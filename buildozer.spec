@@ -6,7 +6,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 1.0
 
-# REQUISITOS (Cámara y QR)
+# REQUISITOS (Zbar y Kivy)
 requirements = python3,kivy==2.3.0,android,requests,kivy_garden.zbarcam,zbar,pillow,openssl
 
 # PERMISOS
@@ -15,20 +15,17 @@ android.permissions = INTERNET,CAMERA,WRITE_EXTERNAL_STORAGE,READ_EXTERNAL_STORA
 orientation = portrait
 fullscreen = 0
 
-# CONFIGURACION ANDROID
+# --- CONFIGURACIÓN ANDROID (CRUCIAL) ---
 android.api = 33
 android.minapi = 24
 android.ndk = 25b
 android.archs = arm64-v8a
 android.enable_androidx = True
 
-# --- ¡ESTA ES LA LÍNEA QUE FALTABA! ---
+# ACEPTAR LICENCIAS AUTOMÁTICAMENTE (Esto evita el error oculto)
 android.accept_sdk_license = True
-# --------------------------------------
 
-# CONFIGURACION COMPILADOR
-p4a.branch = master
-p4a.bootstrap = sdl2
+# (He quitado p4a.branch = master para usar la versión ESTABLE)
 
 [buildozer]
 log_level = 2
