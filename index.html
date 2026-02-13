@@ -12,32 +12,70 @@
 
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <style>
-        /* --- ESTILOS --- */
-        body { background-color: #FFFFFF; color: #333333; font-family: sans-serif; text-align: center; margin: 0; padding: 0; user-select: none; }
+        /* --- ESTILOS VISUALES --- */
+        body { 
+            background-color: #FFFFFF; 
+            color: #333333; 
+            font-family: sans-serif; 
+            text-align: center; 
+            margin: 0; padding: 0; 
+            user-select: none; 
+        }
         .container { padding: 20px; }
         .hidden { display: none !important; }
         
         #logo-img { width: 120px; height: 120px; margin: 20px auto; object-fit: contain; display: block; }
         
         /* BOTONES */
-        .btn-main { width: 100%; padding: 20px; margin: 10px 0; font-size: 18px; font-weight: bold; border-radius: 15px; border: none; color: white; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; }
+        .btn-main { 
+            width: 100%; padding: 20px; margin: 10px 0; 
+            font-size: 18px; font-weight: bold; border-radius: 15px; 
+            border: none; color: white; cursor: pointer; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+            display: flex; align-items: center; justify-content: center; 
+        }
         .btn-blue { background: linear-gradient(135deg, #007bff, #0056b3); }
         .btn-green { background: linear-gradient(135deg, #28a745, #1e7e34); }
         
         /* NAVEGACION */
-        .header-nav { display: flex; align-items: center; padding: 15px; background-color: #f8f9fa; border-bottom: 1px solid #dee2e6; margin-bottom: 20px; }
+        .header-nav { 
+            display: flex; align-items: center; 
+            padding: 15px; background-color: #f8f9fa; 
+            border-bottom: 1px solid #dee2e6; margin-bottom: 20px; 
+        }
         .btn-back { background: none; border: none; color: #333333; font-size: 24px; cursor: pointer; padding: 0 15px 0 0; }
         .header-title { font-size: 18px; font-weight: bold; margin: 0; color: #333333; }
         
         /* INPUTS */
-        input { width: 90%; padding: 15px; margin: 10px 0; border-radius: 10px; border: 2px solid #333333; background-color: transparent; color: #333333; font-size: 18px; display: block; margin-left: auto; margin-right: auto; outline: none; text-align: center; }
+        input { 
+            width: 90%; padding: 15px; margin: 10px 0; 
+            border-radius: 10px; 
+            border: 2px solid #333333; 
+            background-color: transparent; 
+            color: #333333; font-size: 16px; 
+            display: block; margin-left: auto; margin-right: auto; 
+            outline: none;
+            transition: border-color 0.3s;
+            text-align: center;
+        }
         input:focus { border-color: #007bff; }
-        input:disabled { background-color: #f8f9fa; color: #6c757d; border: 2px dashed #dee2e6; }
+        input:disabled { 
+            background-color: #f8f9fa; 
+            color: #6c757d; 
+            border: 2px dashed #dee2e6; 
+            font-weight: bold; 
+        }
 
         /* PANTALLA DE CARGA */
-        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(255,255,255,0.98); z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; }
+        #loading-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background-color: rgba(255,255,255,0.98); 
+            z-index: 9999; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; padding: 30px; box-sizing: border-box; 
+        }
         .spinner { border: 6px solid #e9ecef; border-top: 6px solid #007bff; border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 20px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        #loading-text { font-size: 22px; font-weight: bold; color: #333333; }
         
         #reader { width: 100%; border-radius: 10px; overflow: hidden; border: 2px solid #ced4da; }
     </style>
@@ -49,19 +87,20 @@
     <div id="login-screen" class="container">
         <br><br>
         <img src="logo.png" id="logo-img" alt="Logo">
-        <h2 style="color: #333333; margin-top: 10px;">ACCESO RESTRINGIDO</h2>
+        <h2 style="color: #333333; margin-top: 10px;">Inicia sesión</h2>
         
-        <input type="text" id="user-input" placeholder="Usuario" autocomplete="off">
+        <form onsubmit="validarAcceso(event)">
+            <input type="text" id="user-input" name="username" placeholder="Usuario" autocomplete="username" required>
+            <input type="password" id="pin-input" name="password" inputmode="numeric" placeholder="PIN" autocomplete="current-password" required>
+            <button type="submit" class="btn-main btn-blue">ENTRAR</button>
+        </form>
         
-        <input type="password" id="pin-input" inputmode="numeric" pattern="[0-9]*" placeholder="PIN" maxlength="8">
-        
-        <button class="btn-main btn-blue" onclick="validarAcceso()">ENTRAR</button>
         <p id="login-error" style="color: #dc3545; font-weight: bold;" class="hidden">⚠️ USUARIO O PIN INCORRECTOS</p>
     </div>
 
     <div id="loading-overlay" class="hidden">
         <div id="loading-spinner" class="spinner"></div>
-        <div id="loading-text" style="font-weight: bold; font-size: 20px;">Procesando...</div>
+        <div id="loading-text">Procesando...</div>
     </div>
 
     <div id="menu-screen" class="container hidden">
@@ -90,14 +129,15 @@
 
     <script>
         // --- CONFIGURACIÓN DE SEGURIDAD ---
-        const USER_AUTH = "marketing";  // <--- CAMBIA TU USUARIO AQUÍ
-        const PIN_AUTH = "2026";    // <--- CAMBIA TU PIN AQUÍ
+        const USER_AUTH = "Marketing";  
+        const PIN_AUTH = "2026";    
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyGkbMAroZQoRCT2farKF0TkCGKZwmeobjD2RzZav7dsyoEiHRhbRcThqphnq242Bp7/exec";
 
         let html5QrcodeScanner;
 
         // --- VALIDAR ACCESO ---
-        function validarAcceso() {
+        function validarAcceso(event) {
+            if (event) event.preventDefault();
             const uEntrada = document.getElementById('user-input').value;
             const pEntrada = document.getElementById('pin-input').value;
             const errorMsg = document.getElementById('login-error');
