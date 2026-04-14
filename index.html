@@ -648,10 +648,10 @@
         </div>
         <div class="scroll-content">
             <div class="content-card">
-                <div class="input-group">
-                    <label class="input-label">ID Asignado</label>
-                    <input type="text" id="id_qr" class="input-field" placeholder="..." disabled>
-                </div>
+<div class="input-group">
+    <label class="input-label">ID Asignado</label>
+    <input type="text" id="id_qr" class="input-field" placeholder="Se asignará automáticamente al guardar" disabled>
+</div>
                 <div class="input-group">
                     <label class="input-label" for="nombre">Nombre Completo</label>
                     <input type="text" id="nombre" class="input-field" placeholder="Nombre y apellido">
@@ -1071,25 +1071,13 @@
         // ==============================================================
         //  FORM — Manual Registration
         // ==============================================================
-        function prepararFormulario() {
-            showScreen('form-screen');
-            document.getElementById('id_qr').value = '...';
-            document.getElementById('nombre').value = '';
-            document.getElementById('celular').value = '';
-            document.getElementById('empresa').value = '';
-
-            showLoading('Obteniendo ID...');
-            fetch(`${appConfig.scriptUrl}?action=ultimoId`)
-                .then(res => res.text())
-                .then(data => {
-                    document.getElementById('id_qr').value = data;
-                    hideLoading();
-                })
-                .catch(() => {
-                    hideLoading();
-                    toast('❌ Error de conexión al obtener ID', 'error');
-                });
-        }
+function prepararFormulario() {
+    showScreen('form-screen');
+    document.getElementById('id_qr').value = '';
+    document.getElementById('nombre').value = '';
+    document.getElementById('celular').value = '';
+    document.getElementById('empresa').value = '';
+}
 
         function sendForm() {
             const nombre = document.getElementById('nombre').value.trim();
