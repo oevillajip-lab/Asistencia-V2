@@ -1115,17 +1115,25 @@ sendData('nuevo', {
 
             fetch(url)
                 .then(res => res.text())
-                .then(mensaje => {
-                    hideLoading();
-                    toast('✅ ' + mensaje, 'success');
+.then(mensaje => {
+    hideLoading();
+
+    if (mensaje.startsWith("✅")) {
+        toast(mensaje, 'success');
+    } else if (mensaje.startsWith("⚠️")) {
+        toast(mensaje, 'info');
+    } else {
+        toast(mensaje, 'error');
+    }
                     setTimeout(() => {
                         showScreen('menu-screen');
                         // Clear form fields after successful save
-                        if (action === 'nuevo') {
-                            document.getElementById('nombre').value = '';
-                            document.getElementById('celular').value = '';
-                            document.getElementById('empresa').value = '';
-                        }
+if (action === 'nuevo') {
+    document.getElementById('nombre').value = '';
+    document.getElementById('celular').value = '';
+    document.getElementById('correo').value = '';
+    document.getElementById('empresa').value = '';
+}
                     }, 1800);
                 })
                 .catch(() => {
