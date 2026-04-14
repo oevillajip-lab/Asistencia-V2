@@ -1097,12 +1097,13 @@
                 toast('⚠️ El nombre es obligatorio', 'error');
                 return;
             }
-            sendData('nuevo', {
-                nombre: nombre,
-                id: document.getElementById('id_qr').value,
-                celular: document.getElementById('celular').value,
-                empresa: document.getElementById('empresa').value
-            });
+sendData('nuevo', {
+    nombre: nombre,
+    id: document.getElementById('id_qr').value,
+    celular: document.getElementById('celular').value,
+    empresa: document.getElementById('empresa').value,
+    correo: ""
+});
         }
 
         // ==============================================================
