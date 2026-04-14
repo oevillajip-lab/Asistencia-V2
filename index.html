@@ -661,6 +661,10 @@
                     <input type="number" id="celular" class="input-field" placeholder="Opcional">
                 </div>
                 <div class="input-group">
+                <label class="input-label" for="correo">Correo</label>
+                <input type="email" id="correo" class="input-field" placeholder="Opcional">
+                </div>
+                <div class="input-group">
                     <label class="input-label" for="empresa">Empresa</label>
                     <input type="text" id="empresa" class="input-field" placeholder="Opcional">
                 </div>
@@ -1076,6 +1080,7 @@ function prepararFormulario() {
     document.getElementById('id_qr').value = '';
     document.getElementById('nombre').value = '';
     document.getElementById('celular').value = '';
+    document.getElementById('correo').value = '';
     document.getElementById('empresa').value = '';
 }
 
@@ -1087,10 +1092,9 @@ function prepararFormulario() {
             }
 sendData('nuevo', {
     nombre: nombre,
-    id: document.getElementById('id_qr').value,
     celular: document.getElementById('celular').value,
-    empresa: document.getElementById('empresa').value,
-    correo: ""
+    correo: document.getElementById('correo').value,
+    empresa: document.getElementById('empresa').value
 });
         }
 
