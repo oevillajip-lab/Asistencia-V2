@@ -396,7 +396,6 @@
 
                 <div style="text-align: center; margin: 28px 0; font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
                     <strong id="success-nombre"></strong><br>
-                    <span id="success-apellido"></span><br>
                     <span style="font-size: 12px;">📱 <span id="success-telefono"></span></span>
                 </div>
 
@@ -505,6 +504,7 @@
             try {
                 const payload = {
                     nombre: nombre,
+                    apellido: '',
                     telefono: telefono,
                     timestamp: new Date().toLocaleString('es-AR')
                 };
@@ -518,13 +518,9 @@
                     mode: 'no-cors'
                 });
 
-                // Con mode: no-cors, siempre retorna tipo 'opaque'
-                // Asumimos éxito si no lanza error
                 showLoading(false);
                 
-                // Show success screen
                 document.getElementById('success-nombre').textContent = nombre;
-                document.getElementById('success-apellido').textContent = '';
                 document.getElementById('success-telefono').textContent = telefono;
                 
                 showScreen('screen-success');
@@ -541,7 +537,6 @@
         // NEW REGISTRATION
         function newRegistration() {
             document.getElementById('nombre').value = '';
-            document.getElementById('apellido').value = '';
             document.getElementById('telefono').value = '';
             document.getElementById('error-form').classList.remove('show');
             showScreen('screen-form');
@@ -573,9 +568,6 @@
             if (e.key === 'Enter') configureAPI();
         });
         document.getElementById('nombre')?.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') document.getElementById('apellido').focus();
-        });
-        document.getElementById('apellido')?.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') document.getElementById('telefono').focus();
         });
         document.getElementById('telefono')?.addEventListener('keypress', function(e) {
