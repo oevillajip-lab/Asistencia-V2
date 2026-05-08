@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Registro Rápido - Asistencia</title>
+    <meta name="referrer" content="no-referrer">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ===== DESIGN TOKENS ===== */
+        :root {
+            --primary: #4F46E5;
+            --primary-light: #6366F1;
+            --primary-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            --success: #10B981;
+            --success-dark: #059669;
+            --success-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            --danger: #EF4444;
+            --danger-gradient: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+            --warning: #F59E0B;
+            --bg: #F0F2F5;
+            --card: #FFFFFF;
+            --text: #111827;
+            --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
+            --border: #E5E7EB;
+            --border-focus: #4F46E5;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow: 0 4px 20px rgba(0,0,0,0.07);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, #F0F2F5 0%, #E4E7EC 100%);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            user-select: none;
+        }
+
+        /* ===== SCREEN MANAGEMENT ===== */
+        .screen {
+            display: none;
+            min-height: 100vh;
+            animation: screenIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes screenIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* ===== CENTERED LAYOUT ===== */
+        .screen-center {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 32px 20px;
+            position: relative;
+        }
+        .screen-center::before {
+            content: '';
+            position: fixed;
+            top: -30%;
+            right: -20%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(79,70,229,0.06) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .screen-center::after {
+            content: '';
+            position: fixed;
+            bottom: -20%;
+            left: -20%;
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ===== CARD ===== */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 36px 28px;
+            width: 100%;
+            max-width: 420px;
+            position: relative;
+            z-index: 1;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        /* ===== LOGO ===== */
+        .logo-container {
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 18px;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(79,70,229,0.15);
+            background: white;
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: 0 4px 16px rgba(79,70,229,0.15); }
+            50% { box-shadow: 0 6px 24px rgba(79,70,229,0.25); }
+        }
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* ===== TYPOGRAPHY ===== */
+        .screen-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 4px;
+            text-align: center;
+            letter-spacing: -0.3px;
+        }
+        .screen-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-align: center;
+            margin-bottom: 28px;
+            line-height: 1.6;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all var(--transition);
+            position: relative;
+            overflow: hidden;
+            letter-spacing: 0.2px;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+        }
+        .btn-primary:hover:not(:disabled) { box-shadow: 0 6px 22px rgba(79, 70, 229, 0.45); transform: translateY(-1px); }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+        .btn-success:hover:not(:disabled) { box-shadow: 0 6px 22px rgba(16, 185, 129, 0.45); transform: translateY(-1px); }
+
+        .btn + .btn { margin-top: 10px; }
+
+        /* ===== INPUTS ===== */
+        .input-group { margin-bottom: 16px; }
+        .input-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+        }
+        .input-field {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: var(--text);
+            background: var(--card);
+            transition: all var(--transition);
+            outline: none;
+        }
+        .input-field:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+        }
+        .input-field::placeholder { color: var(--text-muted); }
+
+        /* ===== LOADING OVERLAY ===== */
+        #loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(12px);
+            z-index: 9999;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+        }
+        #loading-overlay.active { display: flex; }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.75s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #loading-text {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-140px);
+            background: var(--card);
+            padding: 14px 24px;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            z-index: 10001;
+            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            font-weight: 600;
+            font-size: 14px;
+            max-width: 90vw;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.06);
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .toast.success { border-left: 4px solid var(--success); color: #065F46; }
+        .toast.error { border-left: 4px solid var(--danger); color: #991B1B; }
+        .toast.info { border-left: 4px solid var(--primary); color: #3730A3; }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0 16px;
+            gap: 12px;
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .link-text {
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-top: 16px;
+        }
+        .link-text a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .link-text a:hover { text-decoration: underline; }
+
+        .error-message {
+            background: #FEF2F2;
+            color: #991B1B;
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            border-left: 4px solid var(--danger);
+            margin-bottom: 14px;
+            display: none;
+        }
+        .error-message.show { display: block; }
+    </style>
+</head>
+<body>
+    <!-- LOADING OVERLAY -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div id="loading-text">Procesando...</div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="toast"></div>
+
+    <!-- SCREEN: Setup API -->
+    <div id="screen-api" class="screen active">
+        <div class="screen-center">
+            <div class="card">
+                <div class="logo-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                        <circle cx="50" cy="50" r="45" stroke-width="2"/>
+                        <path d="M 30 50 L 45 65 L 70 35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1 class="screen-title">Configuración</h1>
+                <p class="screen-subtitle">Ingresa la URL del script de Google para guardar los datos</p>
+
+                <div class="error-message" id="error-api"></div>
+
+                <div class="input-group">
+                    <label class="input-label">Script URL de Google</label>
+                    <input type="text" id="scriptUrl" class="input-field" placeholder="https://script.google.com/macros/s/..." />
+                </div>
+
+                <button class="btn btn-primary" onclick="configureAPI()">Siguiente</button>
+
+                <div class="divider">O</div>
+
+                <p class="screen-subtitle" style="margin-bottom: 0; font-size: 11px; margin-top: -10px;">
+                    📋 Copia la URL del Apps Script que ya hayas configurado en Google
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: Registration Form -->
+    <div id="screen-form" class="screen">
+        <div class="screen-center">
+            <div class="card">
+                <div class="logo-container">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="currentColor">
+                        <circle cx="50" cy="35" r="15" stroke-width="2"/>
+                        <path d="M 25 60 Q 50 50 75 60 L 75 80 Q 75 85 70 85 L 30 85 Q 25 85 25 80 Z" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1 class="screen-title">Registro Rápido</h1>
+                <p class="screen-subtitle">Completa tus datos para continuar</p>
+
+                <div class="error-message" id="error-form"></div>
+
+                <div class="input-group">
+                    <label class="input-label">Nombre</label>
+                    <input type="text" id="nombre" class="input-field" placeholder="Tu nombre" autocomplete="off" />
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Apellido</label>
+                    <input type="text" id="apellido" class="input-field" placeholder="Tu apellido" autocomplete="off" />
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Teléfono</label>
+                    <input type="tel" id="telefono" class="input-field" placeholder="Tu teléfono" autocomplete="off" />
+                </div>
+
+                <button class="btn btn-success" onclick="submitForm()">Registrarse</button>
+
+                <div class="link-text">
+                    <a href="#" onclick="resetConfig()">← Cambiar URL</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: Success -->
+    <div id="screen-success" class="screen">
+        <div class="screen-center">
+            <div class="card">
+                <div class="logo-container" style="animation: successPulse 0.6s ease-out;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none" stroke="#10B981">
+                        <circle cx="50" cy="50" r="45" stroke-width="2"/>
+                        <path d="M 30 50 L 45 65 L 70 35" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1 class="screen-title" style="color: #10B981;">¡Registro Exitoso!</h1>
+                <p class="screen-subtitle">Tu información ha sido guardada correctamente</p>
+
+                <div style="text-align: center; margin: 28px 0; font-size: 14px; color: var(--text-secondary); line-height: 1.8;">
+                    <strong id="success-nombre"></strong><br>
+                    <span id="success-apellido"></span><br>
+                    <span style="font-size: 12px;">📱 <span id="success-telefono"></span></span>
+                </div>
+
+                <button class="btn btn-success" onclick="newRegistration()">Registrar Otro</button>
+                <button class="btn btn-primary" onclick="location.reload()">Recargar</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes successPulse {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+
+    <script>
+        let GOOGLE_SCRIPT_URL = localStorage.getItem('scriptUrl') || null;
+
+        // TOAST MESSAGES
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast ${type}`;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+        }
+
+        // LOADING
+        function showLoading(show = true, text = 'Procesando...') {
+            const overlay = document.getElementById('loading-overlay');
+            document.getElementById('loading-text').textContent = text;
+            if (show) {
+                overlay.classList.add('active');
+            } else {
+                overlay.classList.remove('active');
+            }
+        }
+
+        // SCREEN TRANSITIONS
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // CONFIGURE API
+        async function configureAPI() {
+            const url = document.getElementById('scriptUrl').value.trim();
+            const errorDiv = document.getElementById('error-api');
+
+            if (!url) {
+                errorDiv.textContent = '⚠️ Por favor ingresa la URL del script';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            if (!url.includes('script.google.com')) {
+                errorDiv.textContent = '⚠️ La URL debe ser de Google Apps Script';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            errorDiv.classList.remove('show');
+            showLoading(true, 'Verificando script...');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: JSON.stringify({ test: true }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                GOOGLE_SCRIPT_URL = url;
+                localStorage.setItem('scriptUrl', url);
+                showLoading(false);
+                showScreen('screen-form');
+                document.getElementById('nombre').focus();
+                showToast('✓ Script configurado correctamente', 'success');
+            } catch (error) {
+                showLoading(false);
+                errorDiv.textContent = '⚠️ No se pudo conectar al script. Verifica la URL e intenta de nuevo.';
+                errorDiv.classList.add('show');
+                console.error('Error:', error);
+            }
+        }
+
+        // SUBMIT FORM
+        async function submitForm() {
+            const nombre = document.getElementById('nombre').value.trim();
+            const apellido = document.getElementById('apellido').value.trim();
+            const telefono = document.getElementById('telefono').value.trim();
+            const errorDiv = document.getElementById('error-form');
+
+            if (!nombre) {
+                errorDiv.textContent = '⚠️ Por favor ingresa tu nombre';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            if (!apellido) {
+                errorDiv.textContent = '⚠️ Por favor ingresa tu apellido';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            if (!telefono) {
+                errorDiv.textContent = '⚠️ Por favor ingresa tu teléfono';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            if (!/^\d{7,}$/.test(telefono.replace(/\D/g, ''))) {
+                errorDiv.textContent = '⚠️ Teléfono inválido (mínimo 7 dígitos)';
+                errorDiv.classList.add('show');
+                return;
+            }
+
+            errorDiv.classList.remove('show');
+            showLoading(true, 'Guardando datos...');
+
+            try {
+                const payload = {
+                    nombre: nombre,
+                    apellido: apellido,
+                    telefono: telefono,
+                    timestamp: new Date().toLocaleString('es-AR')
+                };
+
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const result = await response.json();
+
+                if (result.success || response.ok) {
+                    showLoading(false);
+                    
+                    // Show success screen
+                    document.getElementById('success-nombre').textContent = nombre;
+                    document.getElementById('success-apellido').textContent = apellido;
+                    document.getElementById('success-telefono').textContent = telefono;
+                    
+                    showScreen('screen-success');
+                    showToast('✓ Datos guardados exitosamente', 'success');
+                } else {
+                    throw new Error(result.message || 'Error desconocido');
+                }
+            } catch (error) {
+                showLoading(false);
+                errorDiv.textContent = '⚠️ Error al guardar los datos. Intenta nuevamente.';
+                errorDiv.classList.add('show');
+                console.error('Error:', error);
+            }
+        }
+
+        // NEW REGISTRATION
+        function newRegistration() {
+            document.getElementById('nombre').value = '';
+            document.getElementById('apellido').value = '';
+            document.getElementById('telefono').value = '';
+            document.getElementById('error-form').classList.remove('show');
+            showScreen('screen-form');
+            document.getElementById('nombre').focus();
+        }
+
+        // RESET CONFIG
+        function resetConfig() {
+            GOOGLE_SCRIPT_URL = null;
+            localStorage.removeItem('scriptUrl');
+            document.getElementById('scriptUrl').value = '';
+            document.getElementById('error-api').classList.remove('show');
+            showScreen('screen-api');
+            document.getElementById('scriptUrl').focus();
+        }
+
+        // INIT
+        window.addEventListener('load', function() {
+            if (GOOGLE_SCRIPT_URL) {
+                showScreen('screen-form');
+                document.getElementById('nombre').focus();
+            } else {
+                document.getElementById('scriptUrl').focus();
+            }
+        });
+
+        // ENTER KEY SUPPORT
+        document.getElementById('scriptUrl')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') configureAPI();
+        });
+        document.getElementById('nombre')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('apellido').focus();
+        });
+        document.getElementById('apellido')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') document.getElementById('telefono').focus();
+        });
+        document.getElementById('telefono')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') submitForm();
+        });
+    </script>
+</body>
+</html>
