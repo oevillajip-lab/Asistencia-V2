@@ -366,13 +366,8 @@
                 <div class="error-message" id="error-form"></div>
 
                 <div class="input-group">
-                    <label class="input-label">Nombre</label>
-                    <input type="text" id="nombre" class="input-field" placeholder="Tu nombre" autocomplete="off" />
-                </div>
-
-                <div class="input-group">
-                    <label class="input-label">Apellido</label>
-                    <input type="text" id="apellido" class="input-field" placeholder="Tu apellido" autocomplete="off" />
+                    <label class="input-label">Nombre y Apellido</label>
+                    <input type="text" id="nombre" class="input-field" placeholder="Nombre y apellido" autocomplete="off" />
                 </div>
 
                 <div class="input-group">
@@ -483,18 +478,11 @@
         // SUBMIT FORM
         async function submitForm() {
             const nombre = document.getElementById('nombre').value.trim();
-            const apellido = document.getElementById('apellido').value.trim();
             const telefono = document.getElementById('telefono').value.trim();
             const errorDiv = document.getElementById('error-form');
 
             if (!nombre) {
-                errorDiv.textContent = '⚠️ Por favor ingresa tu nombre';
-                errorDiv.classList.add('show');
-                return;
-            }
-
-            if (!apellido) {
-                errorDiv.textContent = '⚠️ Por favor ingresa tu apellido';
+                errorDiv.textContent = '⚠️ Por favor ingresa Nombre y Apellido';
                 errorDiv.classList.add('show');
                 return;
             }
@@ -517,7 +505,6 @@
             try {
                 const payload = {
                     nombre: nombre,
-                    apellido: apellido,
                     telefono: telefono,
                     timestamp: new Date().toLocaleString('es-AR')
                 };
@@ -537,7 +524,7 @@
                 
                 // Show success screen
                 document.getElementById('success-nombre').textContent = nombre;
-                document.getElementById('success-apellido').textContent = apellido;
+                document.getElementById('success-apellido').textContent = '';
                 document.getElementById('success-telefono').textContent = telefono;
                 
                 showScreen('screen-success');
