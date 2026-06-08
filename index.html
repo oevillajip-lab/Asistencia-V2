@@ -409,7 +409,7 @@
                 html5QrcodeScanner.pause(true);
             }
 
-            const qrId = decodedText.trim();
+            const qrId = decodedText.trim().toUpperCase();
             
             showLoading('Procesando Ingreso...');
             
@@ -423,10 +423,11 @@
             hideLoading();
 
             if (error || !data || data.length === 0) {
+                if (error) console.error("Error Supabase:", error);
                 await Swal.fire({
                     icon: 'error',
                     title: 'QR No Encontrado',
-                    text: 'Este código no existe en la base de datos o el ID es incorrecto.',
+                    text: `Buscamos el ID: "${qrId}". Este código no existe en la base de datos o el ID es incorrecto.`,
                     confirmButtonColor: '#0d2359'
                 });
             } else {
