@@ -3,72 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Asistencia QR Pro</title>
-    <meta name="description" content="Sistema profesional de control de asistencia con escaneo QR y registro seguro">
-    <meta name="referrer" content="no-referrer">
-
+    <title>Comagro - Asistencia QR</title>
     <link rel="icon" type="image/png" href="logo.png">
-    <link rel="apple-touch-icon" href="logo.png">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
+    
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <!-- Google Identity Services -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <!-- QR Scanner -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 
+    <!-- SweetAlert2 for nice Modals -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <style>
-        /* ===== DESIGN TOKENS ===== */
         :root {
-            --primary: #4F46E5;
-            --primary-light: #6366F1;
-            --primary-gradient: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            --success: #10B981;
-            --success-dark: #059669;
-            --success-gradient: linear-gradient(135deg, #10B981 0%, #059669 100%);
-            --danger: #EF4444;
-            --danger-gradient: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-            --warning: #F59E0B;
+            --navy: #0d2359;
+            --navy-light: #1a3a8a;
+            --green: #2d9e5f;
+            --green-dark: #27895a;
             --bg: #F0F2F5;
             --card: #FFFFFF;
             --text: #111827;
             --text-secondary: #6B7280;
-            --text-muted: #9CA3AF;
             --border: #E5E7EB;
-            --border-focus: #4F46E5;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
-            --shadow: 0 4px 20px rgba(0,0,0,0.07);
-            --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
             --radius: 16px;
             --radius-sm: 10px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition: 0.3s ease;
         }
 
-        /* ===== RESET & BASE ===== */
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: 'Inter', sans-serif;
             background: linear-gradient(180deg, #F0F2F5 0%, #E4E7EC 100%);
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
             user-select: none;
         }
 
-        /* ===== SCREEN MANAGEMENT ===== */
         .screen {
             display: none;
             min-height: 100vh;
-            animation: screenIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            animation: screenIn 0.4s ease;
         }
         .screen.active {
             display: flex;
@@ -76,519 +58,109 @@
         }
 
         @keyframes screenIn {
-            from { opacity: 0; transform: translateY(16px) scale(0.99); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        /* ===== CENTERED LAYOUT ===== */
         .screen-center {
             flex: 1;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 32px 20px;
-            position: relative;
-        }
-        .screen-center::before {
-            content: '';
-            position: fixed;
-            top: -30%;
-            right: -20%;
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(79,70,229,0.06) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
-        }
-        .screen-center::after {
-            content: '';
-            position: fixed;
-            bottom: -20%;
-            left: -20%;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(16,185,129,0.05) 0%, transparent 70%);
-            pointer-events: none;
-            z-index: 0;
+            padding: 20px;
         }
 
-        /* ===== CARD ===== */
         .card {
             background: var(--card);
             border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 36px 28px;
-            width: 100%;
-            max-width: 420px;
-            position: relative;
-            z-index: 1;
-            border: 1px solid rgba(0,0,0,0.04);
-        }
-
-        /* ===== LOGO ===== */
-        .logo-container {
-            width: 76px;
-            height: 76px;
-            margin: 0 auto 18px;
-            border-radius: 18px;
-            overflow: hidden;
-            box-shadow: 0 4px 16px rgba(79,70,229,0.15);
-            background: white;
-            animation: logoPulse 3s ease-in-out infinite;
-        }
-        @keyframes logoPulse {
-            0%, 100% { box-shadow: 0 4px 16px rgba(79,70,229,0.15); }
-            50% { box-shadow: 0 6px 24px rgba(79,70,229,0.25); }
-        }
-        .logo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        /* ===== TYPOGRAPHY ===== */
-        .screen-title {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--text);
-            margin-bottom: 4px;
-            text-align: center;
-            letter-spacing: -0.3px;
-        }
-        .screen-subtitle {
-            font-size: 13px;
-            color: var(--text-secondary);
-            text-align: center;
-            margin-bottom: 28px;
-            line-height: 1.6;
-        }
-
-        /* ===== BUTTONS ===== */
-        .btn {
-            width: 100%;
-            padding: 15px 20px;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-family: 'Inter', sans-serif;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            transition: all var(--transition);
-            position: relative;
-            overflow: hidden;
-            letter-spacing: 0.2px;
-        }
-        .btn:active { transform: scale(0.97); }
-
-        .btn-primary {
-            background: var(--primary-gradient);
-            color: white;
-            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
-        }
-        .btn-primary:hover { box-shadow: 0 6px 22px rgba(79, 70, 229, 0.45); transform: translateY(-1px); }
-
-        .btn-success {
-            background: var(--success-gradient);
-            color: white;
-            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
-        }
-        .btn-success:hover { box-shadow: 0 6px 22px rgba(16, 185, 129, 0.45); transform: translateY(-1px); }
-
-        .btn-danger-outline {
-            background: transparent;
-            color: var(--danger);
-            border: 2px solid #FECACA;
-        }
-        .btn-danger-outline:hover { background: #FEF2F2; border-color: var(--danger); }
-
-        .btn-ghost {
-            background: transparent;
-            color: var(--text-secondary);
-            padding: 12px;
-            font-weight: 600;
-            font-size: 14px;
-        }
-        .btn-ghost:hover { background: #F3F4F6; color: var(--text); }
-
-        .btn-settings {
-            background: #F3F4F6;
-            color: var(--text);
-            font-weight: 600;
-            border: 1px solid var(--border);
-        }
-        .btn-settings:hover { background: #E5E7EB; }
-
-        .btn + .btn { margin-top: 10px; }
-
-        /* ===== INPUTS ===== */
-        .input-group { margin-bottom: 16px; }
-        .input-label {
-            display: block;
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-        }
-        .input-field {
-            width: 100%;
-            padding: 13px 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-family: 'Inter', sans-serif;
-            font-size: 15px;
-            color: var(--text);
-            background: var(--card);
-            transition: all var(--transition);
-            outline: none;
-        }
-        .input-field:focus {
-            border-color: var(--border-focus);
-            box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
-        }
-        .input-field:disabled {
-            background: #F9FAFB;
-            color: var(--text-muted);
-            border-style: dashed;
-            border-color: #D1D5DB;
-            font-weight: 600;
-        }
-        .input-field::placeholder { color: var(--text-muted); }
-
-        /* ===== HEADER NAV ===== */
-        .header {
-            display: flex;
-            align-items: center;
-            padding: 14px 20px;
-            background: var(--card);
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            background: rgba(255,255,255,0.92);
-        }
-        .btn-back {
-            background: none;
-            border: none;
-            font-size: 20px;
-            cursor: pointer;
-            padding: 6px 14px 6px 0;
-            color: var(--primary);
-            font-weight: 700;
-            transition: transform 0.2s;
-        }
-        .btn-back:hover { transform: translateX(-3px); }
-        .header-title {
-            font-size: 16px;
-            font-weight: 700;
-            letter-spacing: -0.2px;
-        }
-
-        /* ===== LOADING OVERLAY ===== */
-        #loading-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(255,255,255,0.92);
-            backdrop-filter: blur(12px);
-            z-index: 9999;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 18px;
-        }
-        #loading-overlay.active { display: flex; }
-
-        .spinner {
-            width: 44px;
-            height: 44px;
-            border: 4px solid var(--border);
-            border-top-color: var(--primary);
-            border-radius: 50%;
-            animation: spin 0.75s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        #loading-text {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--text);
-        }
-
-        /* ===== TOAST ===== */
-        .toast {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%) translateY(-140px);
-            background: var(--card);
-            padding: 14px 24px;
-            border-radius: var(--radius-sm);
-            box-shadow: var(--shadow-lg);
-            z-index: 10001;
-            transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            font-weight: 600;
-            font-size: 14px;
-            max-width: 90vw;
-            text-align: center;
-            border: 1px solid rgba(0,0,0,0.06);
-        }
-        .toast.show { transform: translateX(-50%) translateY(0); }
-        .toast.success { border-left: 4px solid var(--success); color: #065F46; }
-        .toast.error { border-left: 4px solid var(--danger); color: #991B1B; }
-        .toast.info { border-left: 4px solid var(--primary); color: #3730A3; }
-
-        /* ===== QR READER ===== */
-        #reader {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 30px;
             width: 100%;
             max-width: 400px;
-            margin: 20px auto;
-            border-radius: var(--radius);
-            overflow: hidden;
-            border: 2px solid var(--border);
-            box-shadow: var(--shadow);
         }
 
-        /* ===== USER INFO BAR ===== */
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            background: linear-gradient(135deg, #F0F0FF 0%, #F3F4F6 100%);
-            border-radius: var(--radius-sm);
-            margin-bottom: 22px;
-            border: 1px solid rgba(79,70,229,0.08);
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            border-radius: 12px;
+            background: white;
+            padding: 5px;
+            box-shadow: 0 4px 12px rgba(13, 35, 89, 0.15);
         }
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 2px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        .user-details { flex: 1; text-align: left; }
-        .user-name { font-weight: 700; font-size: 14px; color: var(--text); }
-        .user-email { font-size: 12px; color: var(--text-secondary); }
+        .logo-container img { width: 100%; height: 100%; object-fit: contain; }
 
-        /* ===== EMAIL LIST (Settings) ===== */
-        .email-list { list-style: none; margin: 10px 0 16px; }
-        .email-chip {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 14px;
-            background: #F9FAFB;
-            border-radius: 8px;
-            margin-bottom: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            border: 1px solid var(--border);
-            transition: background 0.2s;
-        }
-        .email-chip:hover { background: #F3F4F6; }
-        .admin-badge {
-            background: var(--primary-gradient);
-            color: white;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-weight: 800;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
-        .btn-remove {
-            background: none;
-            border: none;
-            color: var(--danger);
-            font-size: 16px;
-            cursor: pointer;
-            padding: 2px 6px;
-            border-radius: 4px;
-            transition: background 0.2s;
-            line-height: 1;
-        }
-        .btn-remove:hover { background: #FEE2E2; }
+        .screen-title { font-size: 22px; font-weight: 800; color: var(--navy); text-align: center; margin-bottom: 5px; }
+        .screen-subtitle { font-size: 14px; color: var(--text-secondary); text-align: center; margin-bottom: 20px; }
 
-        .add-email-row {
-            display: flex;
-            gap: 8px;
-        }
-        .add-email-row input {
-            flex: 1;
-            margin-bottom: 0 !important;
-        }
-        .add-email-row button {
-            padding: 13px 18px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: var(--radius-sm);
-            font-weight: 800;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all var(--transition);
-            flex-shrink: 0;
-        }
-        .add-email-row button:hover { background: var(--primary-light); }
+        .input-group { margin-bottom: 15px; }
+        .input-label { display: block; font-size: 12px; font-weight: 700; color: var(--text-secondary); margin-bottom: 5px; text-transform: uppercase; }
+        .input-field { width: 100%; padding: 12px 15px; border: 2px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; outline: none; transition: var(--transition); }
+        .input-field:focus { border-color: var(--navy); }
+        
+        .input-code { font-size: 24px; letter-spacing: 6px; text-align: center; font-weight: 700; }
 
-        /* ===== GOOGLE SIGN IN CONTAINER ===== */
-        #google-signin-btn {
-            display: flex;
-            justify-content: center;
-            margin: 24px 0 8px;
-        }
+        .btn { width: 100%; padding: 14px; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 700; cursor: pointer; color: white; transition: var(--transition); display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; }
+        .btn:active { transform: scale(0.98); }
+        .btn-navy { background: var(--navy); }
+        .btn-navy:hover { background: var(--navy-light); }
+        .btn-green { background: var(--green); }
+        .btn-green:hover { background: var(--green-dark); }
+        .btn-ghost { background: transparent; color: var(--text-secondary); padding: 10px; font-size: 13px; }
+        .btn-ghost:hover { background: #F3F4F6; }
 
-        /* ===== DIVIDER ===== */
-        .divider {
-            height: 1px;
-            background: var(--border);
-            margin: 22px 0;
-        }
+        .header { display: flex; align-items: center; padding: 15px 20px; background: white; border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; }
+        .btn-back { background: none; border: none; font-size: 20px; color: var(--navy); font-weight: bold; cursor: pointer; padding-right: 15px; }
+        .header-title { font-size: 18px; font-weight: 700; color: var(--navy); }
 
-        /* ===== SECTION TITLE ===== */
-        .section-title {
-            font-size: 12px;
-            font-weight: 700;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            margin-bottom: 10px;
-        }
+        .scroll-content { flex: 1; overflow-y: auto; padding: 20px; }
+        
+        #reader { width: 100%; max-width: 400px; margin: 0 auto; border-radius: var(--radius); overflow: hidden; border: 3px solid var(--navy); }
 
-        /* ===== STEP INDICATOR ===== */
-        .step-indicator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 24px;
-        }
-        .step-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--border);
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .step-dot.active {
-            background: var(--primary);
-            width: 26px;
-            border-radius: 4px;
-        }
+        .event-card { background: var(--navy-light); color: white; padding: 15px; border-radius: var(--radius-sm); margin-bottom: 20px; text-align: center; }
+        .event-card h3 { font-size: 16px; margin-bottom: 5px; }
+        .event-card p { font-size: 12px; opacity: 0.8; }
 
-        /* ===== SCROLL CONTENT ===== */
-        .scroll-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 24px 20px;
-        }
-        .content-card {
-            background: var(--card);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-sm);
-            padding: 24px;
-            max-width: 420px;
-            margin: 0 auto;
-            width: 100%;
-            border: 1px solid rgba(0,0,0,0.04);
-        }
+        #loading-overlay { position: fixed; inset: 0; background: rgba(255,255,255,0.9); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #loading-overlay.active { display: flex; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--navy); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* ===== LOCK ICON ===== */
-        .lock-hint {
-            font-size: 12px;
-            color: var(--text-muted);
-            text-align: center;
-            margin-top: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-        }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 480px) {
-            .card { padding: 28px 20px; }
-            .screen-title { font-size: 20px; }
-            .screen-center { padding: 24px 16px; }
-        }
-
-        /* ===== BADGE VERSION ===== */
-        .version-badge {
-            position: fixed;
-            bottom: 10px;
-            right: 14px;
-            font-size: 10px;
-            color: var(--text-muted);
-            z-index: 1;
-            letter-spacing: 0.3px;
-        }
     </style>
 </head>
 <body>
 
     <audio id="beep-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3" preload="auto"></audio>
 
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="toast"></div>
-
-    <!-- VERSION BADGE -->
-    <div class="version-badge">v2.0</div>
-
-    <!-- ===== SETUP SCREEN (First use only) ===== -->
-    <div id="setup-screen" class="screen">
-        <div class="screen-center">
-            <div class="card">
-                <div class="logo-container">
-                    <img src="logo.png" alt="Logo Asistencia QR">
-                </div>
-                <h1 class="screen-title">Configuración Inicial</h1>
-                <p class="screen-subtitle">Configura tu aplicación por primera vez.<br>Estos datos se guardan de forma segura en tu dispositivo.</p>
-
-                <div class="step-indicator">
-                    <div class="step-dot active"></div>
-                    <div class="step-dot"></div>
-                </div>
-
-                <div class="input-group">
-                    <label class="input-label" for="setup-script-url">URL del Google Apps Script</label>
-                    <input type="url" id="setup-script-url" class="input-field" placeholder="https://script.google.com/macros/s/.../exec">
-                </div>
-                <div class="input-group">
-                    <label class="input-label" for="setup-admin-email">Tu correo de Google (Admin)</label>
-                    <input type="email" id="setup-admin-email" class="input-field" placeholder="tu@gmail.com">
-                </div>
-
-                <button class="btn btn-primary" onclick="completarSetup()" id="btn-setup">
-                    CONFIGURAR Y CONTINUAR →
-                </button>
-
-                <p class="lock-hint">🔒 Los datos se almacenan cifrados</p>
-            </div>
-        </div>
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <div style="margin-top: 15px; font-weight: bold; color: var(--navy);" id="loading-text">Cargando...</div>
     </div>
 
     <!-- ===== LOGIN SCREEN ===== -->
     <div id="login-screen" class="screen">
         <div class="screen-center">
             <div class="card">
-                <div class="logo-container">
-                    <img src="logo.png" alt="Logo Asistencia QR">
+                <div class="logo-container"><img src="logo.png" alt="Comagro"></div>
+                <h1 class="screen-title">Acceso Personal</h1>
+                
+                <div id="login-step-1">
+                    <p class="screen-subtitle">Ingresa tu correo @comagro.com.py</p>
+                    <div class="input-group">
+                        <input type="email" id="email-input" class="input-field" placeholder="correo@comagro.com.py">
+                    </div>
+                    <button class="btn btn-navy" onclick="enviarPin()">Enviar PIN de Acceso</button>
                 </div>
-                <h1 class="screen-title">Control de Acceso</h1>
-                <p class="screen-subtitle">Inicia sesión con tu cuenta de Google autorizada para continuar.</p>
 
-                <div id="google-signin-btn"></div>
-
-                <p class="lock-hint">🔒 Solo cuentas autorizadas pueden acceder</p>
+                <div id="login-step-2" style="display: none;">
+                    <p class="screen-subtitle">Ingresa el PIN de 6 dígitos que enviamos a tu correo</p>
+                    <div class="input-group">
+                        <input type="number" id="pin-input" class="input-field input-code" placeholder="000000">
+                    </div>
+                    <button class="btn btn-green" onclick="verificarPin()">Verificar e Ingresar</button>
+                    <button class="btn btn-ghost" onclick="cambiarCorreo()">Usar otro correo</button>
+                </div>
             </div>
         </div>
     </div>
@@ -597,34 +169,27 @@
     <div id="menu-screen" class="screen">
         <div class="screen-center">
             <div class="card">
-                <div class="logo-container">
-                    <img src="logo.png" alt="Logo Asistencia QR">
-                </div>
-                <h1 class="screen-title">Menú Principal</h1>
+                <div class="logo-container"><img src="logo.png" alt="Comagro"></div>
+                <h1 class="screen-title" style="margin-bottom: 20px;">Panel de Asistencia</h1>
 
-                <div id="menu-user-info" class="user-info">
-                    <img id="menu-avatar" class="user-avatar" src="logo.png" alt="Avatar" referrerpolicy="no-referrer">
-                    <div class="user-details">
-                        <div id="menu-user-name" class="user-name">Usuario</div>
-                        <div id="menu-user-email" class="user-email">email@ejemplo.com</div>
-                    </div>
+                <div id="event-info" class="event-card">
+                    <h3 id="current-event-name">Buscando evento...</h3>
+                    <p id="current-event-time">Por favor espera</p>
                 </div>
 
-                <button class="btn btn-primary" onclick="startScanner()" id="btn-scan-qr">
+                <button class="btn btn-navy" style="padding: 20px; font-size: 18px;" onclick="abrirScanner()">
                     📸 ESCANEAR QR
                 </button>
-                <button class="btn btn-success" onclick="prepararFormulario()" id="btn-new-attendee">
+                <button class="btn btn-green" onclick="prepararFormulario()">
                     ➕ NUEVO ASISTENTE
                 </button>
-                <button class="btn btn-settings" onclick="showScreen('settings-screen')" id="btn-settings">
-                    ⚙️ CONFIGURACIÓN
-                </button>
-
-                <div class="divider"></div>
-
-                <button class="btn btn-ghost" onclick="cerrarSesion()" id="btn-signout">
-                    Cerrar sesión
-                </button>
+                
+                <hr style="border: 0; border-top: 1px solid var(--border); margin: 20px 0;">
+                
+                <div style="text-align: center; font-size: 12px; color: var(--text-secondary); margin-bottom: 10px;">
+                    Sesión iniciada como: <br><strong id="user-email-display"></strong>
+                </div>
+                <button class="btn btn-ghost" onclick="cerrarSesion()">Cerrar sesión</button>
             </div>
         </div>
     </div>
@@ -632,10 +197,13 @@
     <!-- ===== SCANNER SCREEN ===== -->
     <div id="scanner-screen" class="screen">
         <div class="header">
-            <button class="btn-back" onclick="stopScanner()">← </button>
-            <h2 class="header-title">Escanear QR</h2>
+            <button class="btn-back" onclick="cerrarScanner()">←</button>
+            <h2 class="header-title">Escanear Invitación</h2>
         </div>
-        <div class="scroll-content" style="display: flex; align-items: center; justify-content: center;">
+        <div class="scroll-content" style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
+            <p style="margin-bottom: 15px; text-align: center; color: var(--text-secondary); font-weight: bold;">
+                Apunte la cámara al código QR
+            </p>
             <div id="reader"></div>
         </div>
     </div>
@@ -643,186 +211,45 @@
     <!-- ===== FORM SCREEN ===== -->
     <div id="form-screen" class="screen">
         <div class="header">
-            <button class="btn-back" onclick="showScreen('menu-screen')">← </button>
-            <h2 class="header-title">Nuevo Registro</h2>
+            <button class="btn-back" onclick="showScreen('menu-screen')">←</button>
+            <h2 class="header-title">Registro Manual</h2>
         </div>
         <div class="scroll-content">
-            <div class="content-card">
-<div class="input-group">
-    <label class="input-label">ID Asignado</label>
-    <input type="text" id="id_qr" class="input-field" placeholder="Se asignará automáticamente al guardar" disabled>
-</div>
+            <div class="card" style="margin: 0 auto;">
+                <p class="screen-subtitle">Registrar a una persona sin inscripción previa. Se marcará como presente automáticamente.</p>
                 <div class="input-group">
-                    <label class="input-label" for="nombre">Nombre Completo</label>
-                    <input type="text" id="nombre" class="input-field" placeholder="Nombre y apellido">
+                    <label class="input-label">Nombre Completo *</label>
+                    <input type="text" id="form-nombre" class="input-field" placeholder="Ej. Juan Pérez">
                 </div>
                 <div class="input-group">
-                    <label class="input-label" for="celular">Celular</label>
-                    <input type="number" id="celular" class="input-field" placeholder="Opcional">
+                    <label class="input-label">Celular *</label>
+                    <input type="number" id="form-celular" class="input-field" placeholder="Tu número">
                 </div>
                 <div class="input-group">
-                <label class="input-label" for="correo">Correo</label>
-                <input type="email" id="correo" class="input-field" placeholder="Opcional">
+                    <label class="input-label">Correo *</label>
+                    <input type="email" id="form-correo" class="input-field" placeholder="correo@ejemplo.com">
                 </div>
                 <div class="input-group">
-                    <label class="input-label" for="empresa">Empresa</label>
-                    <input type="text" id="empresa" class="input-field" placeholder="Opcional">
+                    <label class="input-label">Empresa *</label>
+                    <input type="text" id="form-empresa" class="input-field" placeholder="Tu empresa">
                 </div>
-                <button class="btn btn-success" onclick="sendForm()" style="margin-top: 8px;" id="btn-save-form">
-                    💾 GUARDAR DATOS
-                </button>
+                <button class="btn btn-green" onclick="guardarNuevoAsistente()">💾 GUARDAR Y MARCAR PRESENTE</button>
             </div>
         </div>
-    </div>
-
-    <!-- ===== SETTINGS SCREEN ===== -->
-    <div id="settings-screen" class="screen">
-        <div class="header">
-            <button class="btn-back" onclick="showScreen('menu-screen')">← </button>
-            <h2 class="header-title">Configuración</h2>
-        </div>
-        <div class="scroll-content">
-            <div class="content-card">
-                <div class="section-title">URL del Google Apps Script</div>
-                <div class="input-group">
-                    <input type="url" id="settings-script-url" class="input-field" placeholder="https://script.google.com/macros/s/.../exec">
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="section-title">Correos Autorizados</div>
-                <ul id="email-list" class="email-list"></ul>
-
-                <div class="add-email-row">
-                    <input type="email" id="new-email-input" class="input-field" placeholder="correo@gmail.com">
-                    <button onclick="agregarEmail()" title="Agregar">+</button>
-                </div>
-
-                <div class="divider"></div>
-
-                <button class="btn btn-primary" onclick="guardarConfiguracion()" id="btn-save-settings">
-                    💾 GUARDAR CAMBIOS
-                </button>
-
-                <button class="btn btn-danger-outline" onclick="resetearApp()" style="margin-top: 14px;" id="btn-reset-app">
-                    🗑️ RESTABLECER TODO
-                </button>
-
-                <p class="lock-hint" style="margin-top: 14px;">🔒 Los datos se cifran en el dispositivo</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===== LOADING OVERLAY ===== -->
-    <div id="loading-overlay">
-        <div class="spinner"></div>
-        <div id="loading-text">Procesando...</div>
     </div>
 
     <script>
-        // ================================================================
-        //  CONFIGURACIÓN — Solo el Client ID (público por diseño OAuth)
-        //  La URL del Script y los correos se guardan cifrados en el
-        //  dispositivo y NUNCA aparecen en el código fuente.
-        // ================================================================
-        const GOOGLE_CLIENT_ID = '837297883198-8dvdhm3v12ohev593799mabatinivj9g.apps.googleusercontent.com';
-        const STORAGE_KEY = 'aqr_sec_v2';
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://itylpvuzflqlmmqvdhbz.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0eWxwdnV6ZmxxbG1tcXZkaGJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyNjYzMTgsImV4cCI6MjA5MTg0MjMxOH0.yuZ5sWX-Isxd04ySP_ZgDLit1fQDsxoeb25GmU_C_5I';
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ===== APP STATE =====
-        let currentUser = null;   // { email, name, picture }
-        let appConfig   = null;   // { scriptUrl, authorizedEmails: [] }
+        let currentUserEmail = '';
+        let currentEvent = null;
         let html5QrcodeScanner = null;
+        let isProcessingScan = false;
 
-        // ==============================================================
-        //  CIFRADO / DESCIFRADO — localStorage protegido
-        //  XOR + Base64 doble para ofuscar los datos almacenados.
-        //  La clave es interna y dificulta la lectura casual.
-        // ==============================================================
-        const _EK = 'AqR!Pr0_S3cur3#2026';
-
-        function _xor(text, key) {
-            let result = '';
-            for (let i = 0; i < text.length; i++) {
-                result += String.fromCharCode(text.charCodeAt(i) ^ key.charCodeAt(i % key.length));
-            }
-            return result;
-        }
-
-        function encodeData(data) {
-            try {
-                const json = JSON.stringify(data);
-                const xored = _xor(json, _EK);
-                return btoa(unescape(encodeURIComponent(xored)));
-            } catch(e) {
-                return null;
-            }
-        }
-
-        function decodeData(raw) {
-            try {
-                const xored = decodeURIComponent(escape(atob(raw)));
-                const json = _xor(xored, _EK);
-                return JSON.parse(json);
-            } catch(e) {
-                return null;
-            }
-        }
-
-        function saveConfig(config) {
-            const encoded = encodeData(config);
-            if (encoded) localStorage.setItem(STORAGE_KEY, encoded);
-        }
-
-        function loadConfig() {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return null;
-            return decodeData(raw);
-        }
-
-        // ===== JWT DECODE (Google token) =====
-        function decodeJWT(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(
-                    atob(base64).split('').map(c =>
-                        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-                    ).join('')
-                );
-                return JSON.parse(jsonPayload);
-            } catch(e) {
-                return null;
-            }
-        }
-
-        // ===== SCREEN NAVIGATION =====
-        function showScreen(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            const target = document.getElementById(screenId);
-            if (target) target.classList.add('active');
-
-            // Populate settings fields when entering settings
-            if (screenId === 'settings-screen' && appConfig) {
-                document.getElementById('settings-script-url').value = appConfig.scriptUrl || '';
-                renderEmailList();
-            }
-        }
-
-        // ===== TOAST NOTIFICATIONS =====
-        let _toastTimeout = null;
-        function toast(message, type = 'info') {
-            const el = document.getElementById('toast');
-            el.textContent = message;
-            el.className = 'toast ' + type;
-            // Force reflow for animation restart
-            void el.offsetWidth;
-            el.classList.add('show');
-            clearTimeout(_toastTimeout);
-            _toastTimeout = setTimeout(() => el.classList.remove('show'), 3500);
-        }
-
-        // ===== LOADING OVERLAY =====
-        function showLoading(text) {
+        function showLoading(text = 'Cargando...') {
             document.getElementById('loading-text').textContent = text;
             document.getElementById('loading-overlay').classList.add('active');
         }
@@ -830,223 +257,132 @@
             document.getElementById('loading-overlay').classList.remove('active');
         }
 
-        // ==============================================================
-        //  GOOGLE SIGN-IN
-        // ==============================================================
-        let _gsiRetries = 0;
-
-        function initGoogleSignIn() {
-            if (typeof google === 'undefined' || !google.accounts) {
-                _gsiRetries++;
-                if (_gsiRetries > 60) {
-                    toast('❌ No se pudo cargar Google Sign-In. Verifica tu conexión.', 'error');
-                    return;
-                }
-                setTimeout(initGoogleSignIn, 250);
-                return;
-            }
-            _gsiRetries = 0;
-
-            google.accounts.id.initialize({
-                client_id: GOOGLE_CLIENT_ID,
-                callback: handleGoogleResponse,
-                auto_select: false,
-            });
-
-            const btnContainer = document.getElementById('google-signin-btn');
-            btnContainer.innerHTML = ''; // Clear previous renders
-            google.accounts.id.renderButton(btnContainer, {
-                theme: 'outline',
-                size: 'large',
-                shape: 'pill',
-                text: 'signin_with',
-                logo_alignment: 'left',
-                width: 300,
-                locale: 'es'
-            });
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
 
-        function handleGoogleResponse(response) {
-            try {
-                const payload = decodeJWT(response.credential);
-                if (!payload || !payload.email) {
-                    toast('❌ Error al leer datos de Google', 'error');
-                    return;
-                }
-
-                const email = payload.email.toLowerCase();
-
-                // Check authorization
-                const authorized = appConfig.authorizedEmails.map(e => e.toLowerCase());
-                if (!authorized.includes(email)) {
-                    toast('⛔ Este correo no está autorizado: ' + payload.email, 'error');
-                    return;
-                }
-
-                // Create session
-                currentUser = {
-                    email: payload.email,
-                    name: payload.name || payload.email,
-                    picture: payload.picture || 'logo.png'
-                };
-                sessionStorage.setItem('aqr_session', JSON.stringify(currentUser));
-
-                updateMenuUser();
+        // ==============================================================
+        //  LOGIN Y SESIÓN
+        // ==============================================================
+        async function checkSession() {
+            showLoading('Verificando sesión...');
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            hideLoading();
+            if (session) {
+                currentUserEmail = session.user.email;
+                document.getElementById('user-email-display').textContent = currentUserEmail;
                 showScreen('menu-screen');
-                toast('✅ Bienvenido, ' + currentUser.name, 'success');
-
-            } catch(e) {
-                toast('❌ Error de autenticación', 'error');
-                console.error('Auth error:', e);
-            }
-        }
-
-        function updateMenuUser() {
-            if (!currentUser) return;
-            document.getElementById('menu-avatar').src = currentUser.picture;
-            document.getElementById('menu-user-name').textContent = currentUser.name;
-            document.getElementById('menu-user-email').textContent = currentUser.email;
-        }
-
-        function cerrarSesion() {
-            currentUser = null;
-            sessionStorage.removeItem('aqr_session');
-            if (typeof google !== 'undefined' && google.accounts) {
-                google.accounts.id.disableAutoSelect();
-            }
-            showScreen('login-screen');
-            initGoogleSignIn();
-            toast('Sesión cerrada', 'info');
-        }
-
-        // ==============================================================
-        //  SETUP WIZARD (First-time configuration)
-        // ==============================================================
-        function completarSetup() {
-            const scriptUrl = document.getElementById('setup-script-url').value.trim();
-            const adminEmail = document.getElementById('setup-admin-email').value.trim().toLowerCase();
-
-            if (!scriptUrl) {
-                toast('⚠️ Ingresa la URL del Script', 'error');
-                return;
-            }
-            if (!scriptUrl.startsWith('https://script.google.com/')) {
-                toast('⚠️ La URL debe ser de Google Apps Script', 'error');
-                return;
-            }
-            if (!adminEmail || !adminEmail.includes('@')) {
-                toast('⚠️ Ingresa un correo de Google válido', 'error');
-                return;
-            }
-
-            appConfig = {
-                scriptUrl: scriptUrl,
-                authorizedEmails: [adminEmail]
-            };
-            saveConfig(appConfig);
-
-            toast('✅ Configuración guardada correctamente', 'success');
-            setTimeout(() => {
+                buscarEventoActual();
+            } else {
                 showScreen('login-screen');
-                initGoogleSignIn();
-            }, 600);
+            }
         }
 
-        // ==============================================================
-        //  SETTINGS
-        // ==============================================================
-        function renderEmailList() {
-            const list = document.getElementById('email-list');
-            list.innerHTML = '';
-            if (!appConfig || !appConfig.authorizedEmails) return;
-
-            appConfig.authorizedEmails.forEach((email, index) => {
-                const li = document.createElement('li');
-                li.className = 'email-chip';
-                const isAdmin = index === 0;
-                li.innerHTML = `
-                    <span style="overflow:hidden;text-overflow:ellipsis;">${email}</span>
-                    <span style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
-                        ${isAdmin ? '<span class="admin-badge">Admin</span>' : ''}
-                        ${!isAdmin ? '<button class="btn-remove" onclick="eliminarEmail(' + index + ')" title="Eliminar">✕</button>' : ''}
-                    </span>
-                `;
-                list.appendChild(li);
+        async function enviarPin() {
+            const email = document.getElementById('email-input').value.trim().toLowerCase();
+            if (!email.endsWith('@comagro.com.py')) {
+                Swal.fire('Error', 'Solo se permiten correos @comagro.com.py', 'error');
+                return;
+            }
+            showLoading('Enviando PIN...');
+            const { error } = await supabaseClient.auth.signInWithOtp({
+                email: email,
+                options: { shouldCreateUser: false }
             });
+            hideLoading();
+            if (error) {
+                Swal.fire('Error', 'No se pudo enviar el PIN. Revisa si el correo es correcto o está registrado.', 'error');
+            } else {
+                currentUserEmail = email;
+                document.getElementById('login-step-1').style.display = 'none';
+                document.getElementById('login-step-2').style.display = 'block';
+            }
         }
 
-        function agregarEmail() {
-            const input = document.getElementById('new-email-input');
-            const email = input.value.trim().toLowerCase();
-
-            if (!email || !email.includes('@')) {
-                toast('⚠️ Correo no válido', 'error');
+        async function verificarPin() {
+            const pin = document.getElementById('pin-input').value.trim();
+            if (pin.length < 4) {
+                Swal.fire('Error', 'Ingresa el PIN numérico', 'error');
                 return;
             }
-            if (appConfig.authorizedEmails.map(e => e.toLowerCase()).includes(email)) {
-                toast('⚠️ Este correo ya está en la lista', 'error');
-                return;
+            showLoading('Verificando...');
+            const { data, error } = await supabaseClient.auth.verifyOtp({
+                email: currentUserEmail,
+                token: pin,
+                type: 'email'
+            });
+            hideLoading();
+            if (error) {
+                Swal.fire('Error', 'PIN incorrecto o expirado.', 'error');
+            } else {
+                document.getElementById('user-email-display').textContent = currentUserEmail;
+                showScreen('menu-screen');
+                buscarEventoActual();
             }
-
-            appConfig.authorizedEmails.push(email);
-            input.value = '';
-            renderEmailList();
-            toast('📧 Correo agregado — guarda los cambios', 'info');
         }
 
-        function eliminarEmail(index) {
-            if (index === 0) return; // Cannot remove admin
-            const email = appConfig.authorizedEmails[index];
-            appConfig.authorizedEmails.splice(index, 1);
-            renderEmailList();
-            toast('Correo eliminado — guarda los cambios', 'info');
+        function cambiarCorreo() {
+            document.getElementById('login-step-2').style.display = 'none';
+            document.getElementById('login-step-1').style.display = 'block';
+            document.getElementById('pin-input').value = '';
         }
 
-        function guardarConfiguracion() {
-            const newUrl = document.getElementById('settings-script-url').value.trim();
-
-            if (!newUrl) {
-                toast('⚠️ La URL no puede estar vacía', 'error');
-                return;
-            }
-            if (!newUrl.startsWith('https://script.google.com/')) {
-                toast('⚠️ URL no válida de Google Apps Script', 'error');
-                return;
-            }
-
-            appConfig.scriptUrl = newUrl;
-            saveConfig(appConfig);
-            toast('✅ Configuración guardada exitosamente', 'success');
+        async function cerrarSesion() {
+            await supabaseClient.auth.signOut();
+            document.getElementById('login-step-2').style.display = 'none';
+            document.getElementById('login-step-1').style.display = 'block';
+            document.getElementById('pin-input').value = '';
+            document.getElementById('email-input').value = '';
+            showScreen('login-screen');
         }
 
-        function resetearApp() {
-            if (confirm('⚠️ ¿Estás seguro?\n\nEsto eliminará toda la configuración y tendrás que configurar de nuevo.')) {
-                localStorage.removeItem(STORAGE_KEY);
-                sessionStorage.removeItem('aqr_session');
-                currentUser = null;
-                appConfig = null;
-                showScreen('setup-screen');
-                toast('App restablecida', 'info');
+        // ==============================================================
+        //  EVENTOS
+        // ==============================================================
+        async function buscarEventoActual() {
+            const today = new Date();
+            const dateStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+            
+            // Buscar eventos activos hoy
+            const { data, error } = await supabaseClient
+                .from('events')
+                .select('*')
+                .eq('date', dateStr)
+                .eq('status', 'activo');
+
+            if (error || !data || data.length === 0) {
+                document.getElementById('current-event-name').textContent = 'Ningún evento hoy';
+                document.getElementById('current-event-time').textContent = 'Podes seguir escaneando si sabes que hay un evento activo.';
+                currentEvent = null;
+            } else {
+                // Tomar el primero o el más cercano en tiempo
+                currentEvent = data[0];
+                document.getElementById('current-event-name').textContent = currentEvent.name;
+                document.getElementById('current-event-time').textContent = 
+                    (currentEvent.time ? `Inicia: ${currentEvent.time}` : '') + 
+                    (currentEvent.location ? ` - ${currentEvent.location}` : '');
             }
         }
 
         // ==============================================================
-        //  QR SCANNER
+        //  ESCANER QR
         // ==============================================================
-        function startScanner() {
+        function abrirScanner() {
             showScreen('scanner-screen');
+            isProcessingScan = false;
             html5QrcodeScanner = new Html5Qrcode('reader');
             html5QrcodeScanner.start(
                 { facingMode: 'environment' },
                 { fps: 10, qrbox: { width: 250, height: 250 } },
                 onScanSuccess
-            ).catch(() => {
-                toast('❌ Error al acceder a la cámara', 'error');
+            ).catch(err => {
+                Swal.fire('Error', 'No se pudo acceder a la cámara.', 'error');
                 showScreen('menu-screen');
             });
         }
 
-        function stopScanner() {
+        function cerrarScanner() {
             if (html5QrcodeScanner) {
                 html5QrcodeScanner.stop().then(() => {
                     html5QrcodeScanner.clear();
@@ -1061,116 +397,121 @@
             }
         }
 
-        function onScanSuccess(decodedText) {
+        async function onScanSuccess(decodedText) {
+            if (isProcessingScan) return;
+            isProcessingScan = true;
+
             const audio = document.getElementById('beep-sound');
             audio.play().catch(() => {});
 
-            html5QrcodeScanner.stop().then(() => {
-                html5QrcodeScanner.clear();
-                html5QrcodeScanner = null;
-                sendData('scan', { id: decodedText });
-            });
-        }
-
-        // ==============================================================
-        //  FORM — Manual Registration
-        // ==============================================================
-function prepararFormulario() {
-    showScreen('form-screen');
-    document.getElementById('id_qr').value = '';
-    document.getElementById('nombre').value = '';
-    document.getElementById('celular').value = '';
-    document.getElementById('correo').value = '';
-    document.getElementById('empresa').value = '';
-}
-
-        function sendForm() {
-            const nombre = document.getElementById('nombre').value.trim();
-            if (!nombre) {
-                toast('⚠️ El nombre es obligatorio', 'error');
-                return;
-            }
-sendData('nuevo', {
-    nombre: nombre,
-    celular: document.getElementById('celular').value,
-    correo: document.getElementById('correo').value,
-    empresa: document.getElementById('empresa').value
-});
-        }
-
-        // ==============================================================
-        //  SEND DATA — Comunicación con Google Apps Script
-        // ==============================================================
-        function sendData(action, params) {
-            if (!appConfig || !appConfig.scriptUrl) {
-                toast('❌ No hay URL configurada', 'error');
-                return;
+            // Pausar temporalmente mientras procesamos
+            if (html5QrcodeScanner) {
+                html5QrcodeScanner.pause(true);
             }
 
-            showLoading('Procesando...');
-            let url = `${appConfig.scriptUrl}?action=${action}`;
-            for (const key in params) {
-                url += `&${key}=${encodeURIComponent(params[key])}`;
-            }
+            const qrId = decodedText.trim();
+            
+            showLoading('Procesando Ingreso...');
+            
+            // Actualizar status a presente
+            const { data, error } = await supabaseClient
+                .from('registrations')
+                .update({ status: 'presente' })
+                .eq('short_id', qrId)
+                .select('first_name, last_name, company');
 
-            fetch(url)
-                .then(res => res.text())
-.then(mensaje => {
-    hideLoading();
+            hideLoading();
 
-    if (mensaje.startsWith("✅")) {
-        toast(mensaje, 'success');
-    } else if (mensaje.startsWith("⚠️")) {
-        toast(mensaje, 'info');
-    } else {
-        toast(mensaje, 'error');
-    }
-                    setTimeout(() => {
-                        showScreen('menu-screen');
-                        // Clear form fields after successful save
-if (action === 'nuevo') {
-    document.getElementById('nombre').value = '';
-    document.getElementById('celular').value = '';
-    document.getElementById('correo').value = '';
-    document.getElementById('empresa').value = '';
-}
-                    }, 1800);
-                })
-                .catch(() => {
-                    hideLoading();
-                    toast('❌ Error de conexión', 'error');
+            if (error || !data || data.length === 0) {
+                await Swal.fire({
+                    icon: 'error',
+                    title: 'QR No Encontrado',
+                    text: 'Este código no existe en la base de datos o el ID es incorrecto.',
+                    confirmButtonColor: '#0d2359'
                 });
+            } else {
+                const persona = data[0];
+                const nombreCompleto = `${persona.first_name || ''} ${persona.last_name || ''}`.trim();
+                const empresa = persona.company ? `<br><small>${persona.company}</small>` : '';
+                
+                await Swal.fire({
+                    icon: 'success',
+                    title: '¡Ingreso Exitoso!',
+                    html: `<h2>${nombreCompleto}</h2>${empresa}`,
+                    timer: 2500,
+                    showConfirmButton: true,
+                    confirmButtonText: 'Siguiente',
+                    confirmButtonColor: '#2d9e5f'
+                });
+            }
+
+            // Reactivar escáner al cerrar modal
+            isProcessingScan = false;
+            if (html5QrcodeScanner && document.getElementById('scanner-screen').classList.contains('active')) {
+                html5QrcodeScanner.resume();
+            }
         }
 
         // ==============================================================
-        //  APP INITIALIZATION
+        //  FORMULARIO NUEVO ASISTENTE
         // ==============================================================
-        window.addEventListener('DOMContentLoaded', () => {
-            appConfig = loadConfig();
+        function prepararFormulario() {
+            showScreen('form-screen');
+            document.getElementById('form-nombre').value = '';
+            document.getElementById('form-celular').value = '';
+            document.getElementById('form-correo').value = '';
+            document.getElementById('form-empresa').value = '';
+        }
 
-            // Check for existing session
-            const savedSession = sessionStorage.getItem('aqr_session');
-            if (savedSession) {
-                try {
-                    currentUser = JSON.parse(savedSession);
-                } catch(e) {
-                    currentUser = null;
-                }
+        async function guardarNuevoAsistente() {
+            const nombre = document.getElementById('form-nombre').value.trim();
+            const celular = document.getElementById('form-celular').value.trim();
+            const correo = document.getElementById('form-correo').value.trim();
+            const empresa = document.getElementById('form-empresa').value.trim();
+
+            if (!nombre || !celular || !correo || !empresa) {
+                Swal.fire('Faltan Datos', 'Todos los campos (Nombre, Celular, Correo y Empresa) son obligatorios.', 'warning');
+                return;
             }
 
-            if (!appConfig) {
-                // First time → Setup wizard
-                showScreen('setup-screen');
-            } else if (currentUser) {
-                // Active session → Go to menu
-                updateMenuUser();
-                showScreen('menu-screen');
-                initGoogleSignIn(); // Init in background
+            if (!currentEvent) {
+                Swal.fire('Error', 'No hay ningún evento activo hoy. Ve al panel de administración y crea un evento para el día de hoy antes de usar la app.', 'error');
+                return;
+            }
+
+            showLoading('Guardando asistente...');
+            
+            const insertData = {
+                event_id: currentEvent.id,
+                short_id: Math.random().toString(36).substring(2,8).toUpperCase(),
+                registered_at: new Date().toISOString(),
+                first_name: nombre,
+                phone: celular,
+                email: correo,
+                company: empresa,
+                status: 'presente'
+            };
+
+            const { error } = await supabaseClient.from('registrations').insert([insertData]);
+            hideLoading();
+
+            if (error) {
+                Swal.fire('Error', 'Hubo un problema al guardar el asistente: ' + error.message, 'error');
             } else {
-                // Config exists but no session → Login
-                showScreen('login-screen');
-                initGoogleSignIn();
+                await Swal.fire({
+                    icon: 'success',
+                    title: 'Guardado',
+                    text: `${nombre} marcado como presente.`,
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+                showScreen('menu-screen');
             }
+        }
+
+        // Iniciar
+        window.addEventListener('DOMContentLoaded', () => {
+            checkSession();
         });
     </script>
 </body>
