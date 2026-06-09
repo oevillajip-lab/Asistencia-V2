@@ -416,7 +416,7 @@
             // 1. Primero buscamos a la persona (SELECT)
             const { data: searchData, error: searchError } = await supabaseClient
                 .from('registrations')
-                .select('first_name, last_name, company, id')
+                .select('first_name, company, id')
                 .eq('short_id', qrId);
 
             if (searchError || !searchData || searchData.length === 0) {
@@ -448,7 +448,7 @@
                         confirmButtonColor: '#d33'
                     });
                 } else {
-                    const nombreCompleto = `${persona.first_name || ''} ${persona.last_name || ''}`.trim();
+                    const nombreCompleto = persona.first_name ? persona.first_name.trim() : '';
                     const empresa = persona.company ? `<br><small>${persona.company}</small>` : '';
                     
                     await Swal.fire({
