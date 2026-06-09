@@ -416,7 +416,7 @@
             // 1. Primero buscamos a la persona (SELECT)
             const { data: searchData, error: searchError } = await supabaseClient
                 .from('registrations')
-                .select('first_name, company, id')
+                .select('first_name, company, id, status')
                 .eq('short_id', qrId);
 
             if (searchError || !searchData || searchData.length === 0) {
@@ -430,36 +430,46 @@
                 });
             } else {
                 const persona = searchData[0];
+                const nombreCompleto = persona.first_name ? persona.first_name.trim() : '';
+                const empresa = persona.company ? `<br><small>${persona.company}</small>` : '';
                 
-                // 2. Intentamos actualizar el estado a presente (UPDATE)
-                const { error: updateError } = await supabaseClient
-                    .from('registrations')
-                    .update({ status: 'presente' })
-                    .eq('id', persona.id);
-
-                hideLoading();
-
-                if (updateError) {
-                    console.error("Error Supabase Update:", updateError);
+                // Verificamos si ya estaba presente
+                if (persona.status === 'presente') {
+                    hideLoading();
                     await Swal.fire({
-                        icon: 'warning',
-                        title: 'Problema de Permisos',
-                        text: `Encontramos a ${persona.first_name}, pero la base de datos rechazó la actualización a "presente". Asegúrate de estar logueado con un correo administrador válido.`,
-                        confirmButtonColor: '#d33'
+                        icon: 'info',
+                        title: 'Ya Registrado',
+                        html: `<b>${nombreCompleto}</b> ya fue registrado previamente.`,
+                        confirmButtonColor: '#0d2359'
                     });
                 } else {
-                    const nombreCompleto = persona.first_name ? persona.first_name.trim() : '';
-                    const empresa = persona.company ? `<br><small>${persona.company}</small>` : '';
-                    
-                    await Swal.fire({
-                        icon: 'success',
-                        title: '¡Ingreso Exitoso!',
-                        html: `<h2>${nombreCompleto}</h2>${empresa}`,
-                        timer: 2500,
-                        showConfirmButton: true,
-                        confirmButtonText: 'Siguiente',
-                        confirmButtonColor: '#2d9e5f'
-                    });
+                    // 2. Intentamos actualizar el estado a presente (UPDATE)
+                    const { error: updateError } = await supabaseClient
+                        .from('registrations')
+                        .update({ status: 'presente' })
+                        .eq('id', persona.id);
+
+                    hideLoading();
+
+                    if (updateError) {
+                        console.error("Error Supabase Update:", updateError);
+                        await Swal.fire({
+                            icon: 'warning',
+                            title: 'Problema de Permisos',
+                            text: `Encontramos a ${persona.first_name}, pero la base de datos rechazó la actualización a "presente". Asegúrate de estar logueado con un correo administrador válido.`,
+                            confirmButtonColor: '#d33'
+                        });
+                    } else {
+                        await Swal.fire({
+                            icon: 'success',
+                            title: '¡Ingreso Exitoso!',
+                            html: `<h2>${nombreCompleto}</h2>${empresa}`,
+                            timer: 2500,
+                            showConfirmButton: true,
+                            confirmButtonText: 'Siguiente',
+                            confirmButtonColor: '#2d9e5f'
+                        });
+                    }
                 }
             }
 
