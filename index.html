@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Comagro - Asistencia QR v1.3</title>
+    <title>Comagro - Asistencia QR v1.4</title>
     <link rel="icon" type="image/png" href="logo.png">
     
     <!-- Google Fonts -->
@@ -198,7 +198,7 @@
     <div id="scanner-screen" class="screen">
         <div class="header">
             <button class="btn-back" onclick="cerrarScanner()">←</button>
-            <h2 class="header-title">Escanear Invitación (v1.3)</h2>
+            <h2 class="header-title">Escanear Invitación (v1.4)</h2>
         </div>
         <div class="scroll-content" style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
             <p style="margin-bottom: 15px; text-align: center; color: var(--text-secondary); font-weight: bold;">
@@ -361,6 +361,7 @@
                 
                 const now = new Date();
                 const currentMins = now.getHours() * 60 + now.getMinutes();
+                console.log("Hora actual en minutos:", currentMins, "Hora local:", now.getHours() + ':' + now.getMinutes());
                 
                 // Por defecto tomar el último evento del día
                 let selectedEvent = data[data.length - 1];
@@ -370,7 +371,9 @@
                     if (ev.time) {
                         const [h, m] = ev.time.split(':').map(Number);
                         const evMins = h * 60 + m;
+                        console.log("Evaluando evento:", ev.name, "Hora:", ev.time, "Mins:", evMins);
                         if (currentMins <= evMins + 120) {
+                            console.log("-> Evento seleccionado por cercanía:", ev.name);
                             selectedEvent = ev;
                             break;
                         }
