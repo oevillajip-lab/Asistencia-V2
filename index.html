@@ -288,7 +288,7 @@
             showLoading('Enviando PIN...');
             const { error } = await supabaseClient.auth.signInWithOtp({
                 email: email,
-                options: { shouldCreateUser: false }
+                options: { shouldCreateUser: true }
             });
             hideLoading();
             if (error) {
