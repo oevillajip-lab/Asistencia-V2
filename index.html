@@ -356,46 +356,60 @@
                 document.getElementById('current-event-time').textContent = 'Podes seguir escaneando si sabes que hay un evento activo.';
                 currentEvent = null;
             } else {
-                // Determinar la hora efectiva para cada evento
-                for (let ev of data) {
-                    ev.effectiveTime = ev.time;
-                    ev.effectiveShiftId = null;
-                    if (!ev.effectiveTime && ev.event_shifts && ev.event_shifts.length > 0) {
-                        let shiftsToday = ev.event_shifts.filter(s => s.date === dateStr || !s.date);
-                        if (shiftsToday.length > 0) {
-                            shiftsToday.sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
-                            ev.effectiveTime = shiftsToday[0].start_time;
-                            ev.effectiveShiftId = shiftsToday[0].id;
-                        }
-                    }
-                }
+                                  // Determinar la hora efectiva para cada evento y turno
+                  let activeEntities = [];
+                  for (let ev of data) {
+                      if (ev.has_shifts && ev.event_shifts && ev.event_shifts.length > 0) {
+                          let shiftsToday = ev.event_shifts.filter(s => s.date === dateStr || !s.date);
+                          if (shiftsToday.length > 0) {
+                              for (let s of shiftsToday) {
+                                  activeEntities.push({
+                                      ...ev,
+                                      effectiveTime: s.start_time,
+                                      effectiveShiftId: s.id,
+                                      displayName: ev.name + ' (' + s.name + ')'
+                                  });
+                              }
+                          } else {
+                              ev.effectiveTime = ev.time;
+                              ev.effectiveShiftId = null;
+                              ev.displayName = ev.name;
+                              activeEntities.push(ev);
+                          }
+                      } else {
+                          ev.effectiveTime = ev.time;
+                          ev.effectiveShiftId = null;
+                          ev.displayName = ev.name;
+                          activeEntities.push(ev);
+                      }
+                  }
 
-                // Ordenar por hora efectiva
-                data.sort((a,b) => (a.effectiveTime || '').localeCompare(b.effectiveTime || ''));
-                
-                const now = new Date();
-                const currentMins = now.getHours() * 60 + now.getMinutes();
-                console.log("Hora actual en minutos:", currentMins, "Hora local:", now.getHours() + ':' + now.getMinutes());
-                
-                // Por defecto tomar el último evento del día
-                let selectedEvent = data[data.length - 1];
-                
-                // Buscar el evento más cercano a la hora actual (hasta 2 horas después de que inició)
-                for (let ev of data) {
-                    if (ev.effectiveTime) {
-                        const [h, m] = ev.effectiveTime.split(':').map(Number);
-                        const evMins = h * 60 + m;
-                        console.log("Evaluando evento:", ev.name, "Hora efectiva:", ev.effectiveTime, "Mins:", evMins);
-                        if (currentMins <= evMins + 120) {
-                            console.log("-> Evento seleccionado por cercanía:", ev.name);
-                            selectedEvent = ev;
-                            break;
-                        }
-                    }
-                }
-                
-                currentEvent = selectedEvent;
-                document.getElementById('current-event-name').textContent = currentEvent.name;
+                  // Ordenar por hora efectiva
+                  activeEntities.sort((a,b) => (a.effectiveTime || '').localeCompare(b.effectiveTime || ''));
+                  
+                  const now = new Date();
+                  const currentMins = now.getHours() * 60 + now.getMinutes();
+                  console.log("Hora actual en minutos:", currentMins, "Hora local:", now.getHours() + ':' + now.getMinutes());
+                  
+                  // Por defecto tomar el ultimo
+                  let selectedEvent = activeEntities[activeEntities.length - 1];
+                  
+                  // Buscar el evento o turno mas cercano a la hora actual
+                  for (let ev of activeEntities) {
+                      if (ev.effectiveTime) {
+                          const [h, m] = ev.effectiveTime.split(':').map(Number);
+                          const evMins = h * 60 + m;
+                          console.log("Evaluando entidad:", ev.displayName, "Hora efectiva:", ev.effectiveTime, "Mins:", evMins);
+                          if (currentMins <= evMins + 120) {
+                              console.log("-> Entidad seleccionada por cercania:", ev.displayName);
+                              selectedEvent = ev;
+                              break;
+                          }
+                      }
+                  }
+
+                  currentEvent = selectedEvent;
+                  document.getElementById('current-event-name').textContent = currentEvent.displayName || currentEvent.name;
                 document.getElementById('current-event-time').textContent = 
                     (currentEvent.effectiveTime ? `Inicia: ${currentEvent.effectiveTime.substring(0,5)}` : '') + 
                     (currentEvent.location ? ` - ${currentEvent.location}` : '');
@@ -582,3 +596,4 @@
     </script>
 </body>
 </html>
+
