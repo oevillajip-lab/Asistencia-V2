@@ -356,8 +356,28 @@
                 document.getElementById('current-event-time').textContent = 'Podes seguir escaneando si sabes que hay un evento activo.';
                 currentEvent = null;
             } else {
-                // Tomar el primero o el más cercano en tiempo
-                currentEvent = data[0];
+                // Ordenar por hora
+                data.sort((a,b) => (a.time || '').localeCompare(b.time || ''));
+                
+                const now = new Date();
+                const currentMins = now.getHours() * 60 + now.getMinutes();
+                
+                // Por defecto tomar el último evento del día
+                let selectedEvent = data[data.length - 1];
+                
+                // Buscar el evento más cercano a la hora actual (hasta 2 horas después de que inició)
+                for (let ev of data) {
+                    if (ev.time) {
+                        const [h, m] = ev.time.split(':').map(Number);
+                        const evMins = h * 60 + m;
+                        if (currentMins <= evMins + 120) {
+                            selectedEvent = ev;
+                            break;
+                        }
+                    }
+                }
+                
+                currentEvent = selectedEvent;
                 document.getElementById('current-event-name').textContent = currentEvent.name;
                 document.getElementById('current-event-time').textContent = 
                     (currentEvent.time ? `Inicia: ${currentEvent.time}` : '') + 
