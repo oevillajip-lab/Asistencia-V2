@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Comagro - Asistencia QR v1.4</title>
+    <title>Comagro - Asistencia QR v1.5</title>
     <link rel="icon" type="image/png" href="logo.png">
     
     <!-- Google Fonts -->
@@ -198,7 +198,7 @@
     <div id="scanner-screen" class="screen">
         <div class="header">
             <button class="btn-back" onclick="cerrarScanner()">←</button>
-            <h2 class="header-title">Escanear Invitación (v1.4)</h2>
+            <h2 class="header-title">Escanear Invitación (v1.5)</h2>
         </div>
         <div class="scroll-content" style="display: flex; align-items: center; justify-content: center; flex-direction: column;">
             <p style="margin-bottom: 15px; text-align: center; color: var(--text-secondary); font-weight: bold;">
@@ -347,7 +347,7 @@
             // Buscar eventos activos hoy
             const { data, error } = await supabaseClient
                 .from('events')
-                .select('*')
+                .select('*, event_shifts(*)')
                 .eq('date', dateStr)
                 .eq('status', 'activo');
 
@@ -356,8 +356,20 @@
                 document.getElementById('current-event-time').textContent = 'Podes seguir escaneando si sabes que hay un evento activo.';
                 currentEvent = null;
             } else {
-                // Ordenar por hora
-                data.sort((a,b) => (a.time || '').localeCompare(b.time || ''));
+                // Determinar la hora efectiva para cada evento
+                for (let ev of data) {
+                    ev.effectiveTime = ev.time;
+                    if (!ev.effectiveTime && ev.event_shifts && ev.event_shifts.length > 0) {
+                        let shiftsToday = ev.event_shifts.filter(s => s.date === dateStr || !s.date);
+                        if (shiftsToday.length > 0) {
+                            shiftsToday.sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
+                            ev.effectiveTime = shiftsToday[0].start_time;
+                        }
+                    }
+                }
+
+                // Ordenar por hora efectiva
+                data.sort((a,b) => (a.effectiveTime || '').localeCompare(b.effectiveTime || ''));
                 
                 const now = new Date();
                 const currentMins = now.getHours() * 60 + now.getMinutes();
@@ -368,10 +380,10 @@
                 
                 // Buscar el evento más cercano a la hora actual (hasta 2 horas después de que inició)
                 for (let ev of data) {
-                    if (ev.time) {
-                        const [h, m] = ev.time.split(':').map(Number);
+                    if (ev.effectiveTime) {
+                        const [h, m] = ev.effectiveTime.split(':').map(Number);
                         const evMins = h * 60 + m;
-                        console.log("Evaluando evento:", ev.name, "Hora:", ev.time, "Mins:", evMins);
+                        console.log("Evaluando evento:", ev.name, "Hora efectiva:", ev.effectiveTime, "Mins:", evMins);
                         if (currentMins <= evMins + 120) {
                             console.log("-> Evento seleccionado por cercanía:", ev.name);
                             selectedEvent = ev;
@@ -383,7 +395,7 @@
                 currentEvent = selectedEvent;
                 document.getElementById('current-event-name').textContent = currentEvent.name;
                 document.getElementById('current-event-time').textContent = 
-                    (currentEvent.time ? `Inicia: ${currentEvent.time}` : '') + 
+                    (currentEvent.effectiveTime ? `Inicia: ${currentEvent.effectiveTime.substring(0,5)}` : '') + 
                     (currentEvent.location ? ` - ${currentEvent.location}` : '');
             }
         }
