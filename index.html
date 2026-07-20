@@ -460,7 +460,20 @@
                 html5QrcodeScanner.pause(true);
             }
 
-            const qrId = decodedText.trim().toUpperCase();
+            const qrIdRaw = decodedText.trim().toUpperCase();
+            
+            // 0. Seguridad Frontend: Sanitización del código QR (Solo alfanumérico y máx 20 caracteres)
+            const qrClean = qrIdRaw.replace(/[^A-Z0-9-]/g, '').substring(0, 20);
+            
+            if (qrClean.length < 3) {
+                isProcessingScan = false;
+                if (html5QrcodeScanner && document.getElementById('scanner-screen').classList.contains('active')) {
+                    html5QrcodeScanner.resume();
+                }
+                return; // Ignorar lecturas inválidas o basura
+            }
+            
+            const qrId = qrClean;
             
             showLoading('Procesando Ingreso...');
             
@@ -524,11 +537,13 @@
                 }
             }
 
-            // Reactivar escáner al cerrar modal
-            isProcessingScan = false;
-            if (html5QrcodeScanner && document.getElementById('scanner-screen').classList.contains('active')) {
-                html5QrcodeScanner.resume();
-            }
+            // Reactivar escáner al cerrar modal con un debounce de 2 segundos para evitar spam
+            setTimeout(() => {
+                isProcessingScan = false;
+                if (html5QrcodeScanner && document.getElementById('scanner-screen').classList.contains('active')) {
+                    html5QrcodeScanner.resume();
+                }
+            }, 2000);
         }
 
         // ==============================================================
